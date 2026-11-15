@@ -189,7 +189,7 @@
             EQUIPE</div>
 
           
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="equal-cards-grid grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="bench-black-box p-4 flex flex-col justify-between gap-3">
               <div class="flex items-center justify-between gap-2">
                 <span class="font-pixel text-xs text-slate-300" data-i18n="hud_room_prefix">SALA:</span>
@@ -221,7 +221,7 @@
           <div>
             <div class="font-pixel text-xs text-center text-white mb-3.5" data-i18n="srv_char_label">ESCOLHA SEU
               ESPECIALISTA:</div>
-            <div id="lobby-specialists-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+            <div id="lobby-specialists-grid" class="equal-cards-grid grid grid-cols-1 md:grid-cols-2 gap-4"></div>
           </div>
 
           
@@ -327,7 +327,7 @@
           <strong id="top-warning-title" class="font-pixel text-xs mr-2">ALERTA DE FALTA DE ENERGIA:</strong>
           <span id="top-warning-desc">O satélite consome mais energia do que gera.</span>
         </div>
-        <button id="btn-fix-warning" type="button" class="kimu-btn kimu-btn-sm bg-black">
+        <button id="btn-fix-warning" type="button" class="kimu-btn kimu-btn-sm bg-black" data-i18n="warn_fix_btn">
           CORRIGIR NA SALA 2
         </button>
       </div>
@@ -448,9 +448,9 @@
   <div id="countdown-overlay"
     class="hidden fixed inset-0 bg-black/85 flex flex-col items-center justify-center z-40 p-4">
     <div class="kimu-box p-8 text-center max-w-md w-full">
-      <div class="font-pixel text-sm text-slate-300 mb-3">PLATAFORMA 39A</div>
+      <div class="font-pixel text-sm text-slate-300 mb-3" data-i18n="cd_pad_title">PLATAFORMA 39A</div>
       <div id="countdown-number" class="font-pixel text-3xl sm:text-4xl text-white my-4">T-00:10</div>
-      <p class="font-pixel-body text-2xl text-slate-200">SEQUÊNCIA DE IGNIÇÃO INICIADA...</p>
+      <p class="font-pixel-body text-2xl text-slate-200" data-i18n="cd_ignition_sub">SEQUÊNCIA DE IGNIÇÃO INICIADA...</p>
     </div>
   </div>
 
@@ -458,7 +458,7 @@
   <div id="cutscene-overlay" class="hidden fixed inset-0 bg-black flex flex-col items-center justify-center p-3 z-40">
     <div class="w-full max-w-5xl aspect-video border-2 border-white relative">
       <canvas id="cutscene-canvas" width="1280" height="720"></canvas>
-      <button id="btn-skip-cutscene" type="button" class="kimu-btn kimu-btn-sm absolute bottom-4 right-4">
+      <button id="btn-skip-cutscene" type="button" class="kimu-btn kimu-btn-sm absolute bottom-4 right-4" data-i18n="btn_skip">
         AVANÇAR
       </button>
     </div>

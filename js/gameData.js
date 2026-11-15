@@ -83,7 +83,14 @@ window.GAME_DATA = {
           w: 144,
           h: 144,
           modalId: 'modal_science',
-          label: { 'pt-BR': 'Bancada 1: Escolher Missão e Sensor', 'en-US': 'Bench 1: Select Mission & Sensor' }
+          label: {
+            'pt-BR': 'Bancada 1: Escolher Missão e Sensor',
+            'en-US': 'Bench 1: Select Mission & Sensor',
+            'es-ES': 'Mesa 1: Elegir Misión y Sensor',
+            'fr-FR': 'Poste 1 : Choisir Mission et Capteur',
+            'it-IT': 'Banco 1: Scegli Missione e Sensore',
+            'de-DE': 'Station 1: Mission & Sensor wählen'
+          }
         },
         {
           id: 'prop_board',
@@ -93,7 +100,14 @@ window.GAME_DATA = {
           w: 144,
           h: 144,
           modalId: 'modal_board',
-          label: { 'pt-BR': 'Bancada 2: Aprovar Orçamento e Licenças', 'en-US': 'Bench 2: Approve Budget & Licenses' }
+          label: {
+            'pt-BR': 'Bancada 2: Aprovar Orçamento e Licenças',
+            'en-US': 'Bench 2: Approve Budget & Licenses',
+            'es-ES': 'Mesa 2: Aprobar Presupuesto y Licencias',
+            'fr-FR': 'Poste 2 : Approuver Budget et Licences',
+            'it-IT': 'Banco 2: Approva Budget e Licenze',
+            'de-DE': 'Station 2: Budget & Lizenzen genehmigen'
+          }
         }
       ],
       door: { x: 640, y: 635, w: 180, h: 52 }
@@ -122,7 +136,14 @@ window.GAME_DATA = {
           w: 144,
           h: 144,
           modalId: 'modal_cleanroom',
-          label: { 'pt-BR': 'Bancada 1: Montar Peças do Satélite', 'en-US': 'Bench 1: Assemble Satellite Parts' }
+          label: {
+            'pt-BR': 'Bancada 1: Montar Peças do Satélite',
+            'en-US': 'Bench 1: Assemble Satellite Parts',
+            'es-ES': 'Mesa 1: Montar Piezas del Satélite',
+            'fr-FR': 'Poste 1 : Assembler les Pièces du Satellite',
+            'it-IT': 'Banco 1: Assembla Componenti del Satellite',
+            'de-DE': 'Station 1: Satellitenteile montieren'
+          }
         },
         {
           id: 'prop_shaker',
@@ -132,7 +153,14 @@ window.GAME_DATA = {
           w: 144,
           h: 144,
           modalId: 'modal_shaker',
-          label: { 'pt-BR': 'Bancada 2: Testes de Vibração e Vácuo', 'en-US': 'Bench 2: Vibration & Vacuum Tests' }
+          label: {
+            'pt-BR': 'Bancada 2: Testes de Vibração e Vácuo',
+            'en-US': 'Bench 2: Vibration & Vacuum Tests',
+            'es-ES': 'Mesa 2: Pruebas de Vibración y Vacío',
+            'fr-FR': 'Poste 2 : Tests de Vibration et Vide',
+            'it-IT': 'Banco 2: Test di Vibrazione e Vuoto',
+            'de-DE': 'Station 2: Vibrations- & Vakuumtests'
+          }
         }
       ],
       door: { x: 640, y: 635, w: 180, h: 52 }
@@ -160,7 +188,14 @@ window.GAME_DATA = {
           w: 144,
           h: 144,
           modalId: 'modal_comms',
-          label: { 'pt-BR': 'Console Central: Antenas, Clima e Checklist', 'en-US': 'Central Console: Antennas, Weather & Poll' }
+          label: {
+            'pt-BR': 'Console Central: Antenas, Clima e Checklist',
+            'en-US': 'Central Console: Antennas, Weather & Poll',
+            'es-ES': 'Consola Central: Antenas, Clima y Checklist',
+            'fr-FR': 'Console Centrale : Antennes, Météo et Checklist',
+            'it-IT': 'Console Centrale: Antenne, Meteo e Checklist',
+            'de-DE': 'Zentralkonsole: Antennen, Wetter & Checkliste'
+          }
         }
       ],
       door: { x: 640, y: 635, w: 180, h: 52 }
@@ -191,7 +226,14 @@ window.GAME_DATA = {
           w: 144,
           h: 144,
           modalId: 'modal_launch',
-          label: { 'pt-BR': 'Plataforma 39A: Escolher Foguete e Lançar', 'en-US': 'Pad 39A: Select Rocket & Launch' }
+          label: {
+            'pt-BR': 'Plataforma 39A: Escolher Foguete e Lançar',
+            'en-US': 'Pad 39A: Select Rocket & Launch',
+            'es-ES': 'Plataforma 39A: Elegir Cohete y Lanzar',
+            'fr-FR': 'Pas de Tir 39A : Choisir Fusée et Lancer',
+            'it-IT': 'Rampa 39A: Scegli Razzo e Lancia',
+            'de-DE': 'Rampe 39A: Rakete wählen & starten'
+          }
         }
       ],
       door: { x: 640, y: 635, w: 180, h: 52 }
@@ -389,48 +431,118 @@ window.GAME_DATA = {
   chassis: [
     {
       id: '1U',
-      name: '1U (Cubo de 10 cm)',
+      name: {
+        'pt-BR': '1U (Cubo de 10 cm)',
+        'en-US': '1U (10 cm Cube)',
+        'es-ES': '1U (Cubo de 10 cm)',
+        'fr-FR': '1U (Cube de 10 cm)',
+        'it-IT': '1U (Cubo da 10 cm)',
+        'de-DE': '1U (10 cm Würfel)'
+      },
       units: 1,
       maxMass: 1.33,
       cost: 10000,
       dispenser: 'PPOD',
-      desc: { 'pt-BR': 'Tamanho de uma caneca (10x10x10 cm). Leve e barato, suporta até 1,33 kg.', 'en-US': 'Coffee-mug size (10x10x10 cm). Light and affordable, holds up to 1.33 kg.' }
+      desc: {
+        'pt-BR': 'Tamanho de uma caneca (10x10x10 cm). Leve e barato, suporta até 1,33 kg.',
+        'en-US': 'Coffee-mug size (10x10x10 cm). Light and affordable, holds up to 1.33 kg.',
+        'es-ES': 'Tamaño de una taza (10x10x10 cm). Ligero y económico, soporta hasta 1,33 kg.',
+        'fr-FR': 'Taille d’une tasse (10x10x10 cm). Léger et économique, supporte jusqu’à 1,33 kg.',
+        'it-IT': 'Dimensioni di una tazza (10x10x10 cm). Leggero ed economico, supporta fino a 1,33 kg.',
+        'de-DE': 'Tassengröße (10x10x10 cm). Leicht und günstig, trägt bis zu 1,33 kg.'
+      }
     },
     {
       id: '1.5U',
-      name: '1.5U (Cubo Médio 17 cm)',
+      name: {
+        'pt-BR': '1.5U (Cubo Médio 17 cm)',
+        'en-US': '1.5U (Medium 17 cm Cube)',
+        'es-ES': '1.5U (Cubo Medio 17 cm)',
+        'fr-FR': '1.5U (Cube Moyen 17 cm)',
+        'it-IT': '1.5U (Cubo Medio 17 cm)',
+        'de-DE': '1.5U (Mittlerer 17 cm Würfel)'
+      },
       units: 1.5,
       maxMass: 2.00,
       cost: 15000,
       dispenser: 'PPOD',
-      desc: { 'pt-BR': 'Um cubo e meio de altura. Suporta até 2,00 kg.', 'en-US': 'One and a half units tall. Holds up to 2.00 kg.' }
+      desc: {
+        'pt-BR': 'Um cubo e meio de altura. Suporta até 2,00 kg.',
+        'en-US': 'One and a half units tall. Holds up to 2.00 kg.',
+        'es-ES': 'Un cubo y medio de altura. Soporta hasta 2,00 kg.',
+        'fr-FR': 'Un cube et demi de hauteur. Supporte jusqu’à 2,00 kg.',
+        'it-IT': 'Un cubo e mezzo di altezza. Supporta fino a 2,00 kg.',
+        'de-DE': 'Eineinhalb Einheiten hoch. Trägt bis zu 2,00 kg.'
+      }
     },
     {
       id: '2U',
-      name: '2U (Bloco Duplo 22 cm)',
+      name: {
+        'pt-BR': '2U (Bloco Duplo 22 cm)',
+        'en-US': '2U (Double Block 22 cm)',
+        'es-ES': '2U (Bloque Doble 22 cm)',
+        'fr-FR': '2U (Bloc Double 22 cm)',
+        'it-IT': '2U (Blocco Doppio 22 cm)',
+        'de-DE': '2U (Doppelblock 22 cm)'
+      },
       units: 2,
       maxMass: 2.66,
       cost: 22000,
       dispenser: 'PPOD',
-      desc: { 'pt-BR': 'Dois cubos empilhados. Suporta até 2,66 kg.', 'en-US': 'Two stacked cubes. Holds up to 2.66 kg.' }
+      desc: {
+        'pt-BR': 'Dois cubos empilhados. Suporta até 2,66 kg.',
+        'en-US': 'Two stacked cubes. Holds up to 2.66 kg.',
+        'es-ES': 'Dos cubos apilados. Soporta hasta 2,66 kg.',
+        'fr-FR': 'Deux cubes empilés. Supporte jusqu’à 2,66 kg.',
+        'it-IT': 'Due cubi impilati. Supporta fino a 2,66 kg.',
+        'de-DE': 'Zwei gestapelte Würfel. Trägt bis zu 2,66 kg.'
+      }
     },
     {
       id: '3U',
-      name: '3U (Caixa de Sapatos 34 cm)',
+      name: {
+        'pt-BR': '3U (Caixa de Sapatos 34 cm)',
+        'en-US': '3U (Shoebox 34 cm)',
+        'es-ES': '3U (Caja de Zapatos 34 cm)',
+        'fr-FR': '3U (Boîte à Chaussures 34 cm)',
+        'it-IT': '3U (Scatola da Scarpe 34 cm)',
+        'de-DE': '3U (Schuhkarton 34 cm)'
+      },
       units: 3,
       maxMass: 4.00,
       cost: 35000,
       dispenser: 'PPOD',
-      desc: { 'pt-BR': 'Três cubos empilhados (30 cm de comprimento). Suporta até 4,00 kg.', 'en-US': 'Three stacked cubes (30 cm length). Holds up to 4.00 kg.' }
+      desc: {
+        'pt-BR': 'Três cubos empilhados (30 cm de comprimento). Suporta até 4,00 kg.',
+        'en-US': 'Three stacked cubes (30 cm length). Holds up to 4.00 kg.',
+        'es-ES': 'Tres cubos apilados (30 cm de longitud). Soporta hasta 4,00 kg.',
+        'fr-FR': 'Trois cubes empilés (30 cm de long). Supporte jusqu’à 4,00 kg.',
+        'it-IT': 'Tre cubi impilati (30 cm di lunghezza). Supporta fino a 4,00 kg.',
+        'de-DE': 'Drei gestapelte Würfel (30 cm Länge). Trägt bis zu 4,00 kg.'
+      }
     },
     {
       id: '6U',
-      name: '6U (Maleta Espacial 36 cm)',
+      name: {
+        'pt-BR': '6U (Maleta Espacial 36 cm)',
+        'en-US': '6U (Space Briefcase 36 cm)',
+        'es-ES': '6U (Maletín Espacial 36 cm)',
+        'fr-FR': '6U (Mallette Spatiale 36 cm)',
+        'it-IT': '6U (Valigetta Spaziale 36 cm)',
+        'de-DE': '6U (Raumkoffer 36 cm)'
+      },
       units: 6,
       maxMass: 8.00,
       cost: 65000,
       dispenser: 'SSOD_6U',
-      desc: { 'pt-BR': 'Chassi amplo de seis unidades para instrumentos de maior porte. Suporta até 8,00 kg.', 'en-US': 'Large six-unit frame for heavier instruments. Holds up to 8.00 kg.' }
+      desc: {
+        'pt-BR': 'Chassi amplo de seis unidades para instrumentos de maior porte. Suporta até 8,00 kg.',
+        'en-US': 'Large six-unit frame for heavier instruments. Holds up to 8.00 kg.',
+        'es-ES': 'Chasis amplio de seis unidades para instrumentos mayores. Soporta hasta 8,00 kg.',
+        'fr-FR': 'Grand châssis de six unités pour instruments plus lourds. Supporte jusqu’à 8,00 kg.',
+        'it-IT': 'Ampio telaio da sei unità per strumenti più grandi. Supporta fino a 8,00 kg.',
+        'de-DE': 'Großes Sechs-Einheiten-Gehäuse für schwerere Instrumente. Trägt bis zu 8,00 kg.'
+      }
     }
   ],
 
@@ -1085,23 +1197,25 @@ window.GAME_DATA = {
       state.tests.ditl &&
       !state.testsInvalidatedByChange;
 
-    let currentCML = 'ETAPA 1';
+    const stageWord = typeof window.t === 'function' ? window.t('hud_stage') : 'ETAPA';
+    let stageNum = 1;
     if (state.meritReviewPassed && state.feasibilityReviewPassed && payloadMatchesMission) {
-      currentCML = 'ETAPA 2';
+      stageNum = 2;
     }
-    if (currentCML === 'ETAPA 2' && allTestsPassed && massOk && powerOk) {
-      currentCML = 'ETAPA 3';
+    if (stageNum === 2 && allTestsPassed && massOk && powerOk) {
+      stageNum = 3;
     }
     if (
-      currentCML === 'ETAPA 3' &&
+      stageNum === 3 &&
       state.fccLicenseApproved &&
       state.weatherStatus === 'clear' &&
       state.dispenserLoaded &&
       state.rbfRemovedAtPad &&
       state.crawlerTransported
     ) {
-      currentCML = 'ETAPA 4';
+      stageNum = 4;
     }
+    const currentCML = `${stageWord} ${stageNum}`;
 
     const pollGates = [
       {

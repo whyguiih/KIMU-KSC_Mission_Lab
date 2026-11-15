@@ -82,69 +82,66 @@ class KscSoundEngine {
     const chords = [
       [174.61, 220.0, 261.63, 329.63],
       [146.83, 220.0, 261.63, 329.63],
-      [116.54, 174.61, 220.0, 293.66],
-      [130.81, 196.0, 261.63, 329.63]
+      [130.81, 196.0, 246.94, 293.66],
+      [146.83, 196.0, 261.63, 329.63]
     ];
 
-    const starNotes = [523.25, 587.33, 659.25, 783.99, 880.0, 1046.5, 880.0, 659.25];
+    const melodyNotes = [523.25, 659.25, 587.33, 523.25, 659.25, 783.99, 659.25, 587.33];
 
-    const playCycle = () => {
-      if (!this.ctx || this.ctx.state !== 'running' || this.isMuted) return;
+    this.padFilter = this.ctx.createBiquadFilter();
+    this.padFilter.type = 'lowpass';
+    this.padFilter.frequency.value = 620;
+    this.padFilter.connect(this.musicGain);
+
+    this.padOscs = chords[0].map((freq, idx) => {
+      const osc = this.ctx.createOscillator();
+      const voiceGain = this.ctx.createGain();
+      osc.type = idx < 2 ? 'triangle' : 'sine';
+      osc.frequency.value = freq;
+      voiceGain.gain.value = 0.032;
+      osc.connect(voiceGain);
+      voiceGain.connect(this.padFilter);
+      osc.start();
+      return osc;
+    });
+
+    const playStepMelody = () => {
+      if (!this.ctx || this.ctx.state !== 'running') return;
       const now = this.ctx.currentTime;
-      const chord = chords[this.chordIndex % chords.length];
-      this.chordIndex += 1;
 
-      chord.forEach((freq, idx) => {
-        const osc = this.ctx.createOscillator();
-        const filter = this.ctx.createBiquadFilter();
-        const gain = this.ctx.createGain();
+      if (this.arpIndex % 4 === 0) {
+        const chord = chords[this.chordIndex % chords.length];
+        this.chordIndex += 1;
+        chord.forEach((freq, idx) => {
+          if (this.padOscs && this.padOscs[idx]) {
+            this.padOscs[idx].frequency.setTargetAtTime(freq, now, 0.25);
+          }
+        });
+      }
 
-        osc.type = idx % 2 === 0 ? 'sine' : 'triangle';
-        osc.frequency.setValueAtTime(freq, now);
-        osc.detune.setValueAtTime(idx * 3 - 4, now);
+      const noteFreq = melodyNotes[this.arpIndex % melodyNotes.length];
+      this.arpIndex += 1;
 
-        filter.type = 'lowpass';
-        filter.frequency.setValueAtTime(680, now);
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
 
-        gain.gain.setValueAtTime(0.0001, now);
-        gain.gain.linearRampToValueAtTime(0.045, now + 1.4);
-        gain.gain.setValueAtTime(0.045, now + 2.6);
-        gain.gain.exponentialRampToValueAtTime(0.0001, now + 4.4);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(noteFreq, now);
 
-        osc.connect(filter);
-        filter.connect(gain);
-        gain.connect(this.musicGain);
+      gain.gain.setValueAtTime(0.022, now);
+      gain.gain.setValueAtTime(0.022, now + 0.75);
+      gain.gain.linearRampToValueAtTime(0.0001, now + 0.98);
 
-        osc.start(now);
-        osc.stop(now + 4.5);
-      });
+      osc.connect(gain);
+      gain.connect(this.musicGain);
 
-      [0.6, 2.3].forEach((offsetSec) => {
-        const noteFreq = starNotes[this.arpIndex % starNotes.length];
-        this.arpIndex += 1;
-
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        const startAt = now + offsetSec;
-
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(noteFreq, startAt);
-
-        gain.gain.setValueAtTime(0.0001, startAt);
-        gain.gain.linearRampToValueAtTime(0.032, startAt + 0.08);
-        gain.gain.exponentialRampToValueAtTime(0.0001, startAt + 1.35);
-
-        osc.connect(gain);
-        gain.connect(this.musicGain);
-
-        osc.start(startAt);
-        osc.stop(startAt + 1.4);
-      });
+      osc.start(now);
+      osc.stop(now + 1.0);
     };
 
-    playCycle();
+    playStepMelody();
     if (this.musicInterval) clearInterval(this.musicInterval);
-    this.musicInterval = setInterval(playCycle, 4000);
+    this.musicInterval = setInterval(playStepMelody, 1000);
   }
 
   playTone(freq, duration = 0.09, type = 'triangle', peakGain = 0.22, slideToFreq = null) {
@@ -270,7 +267,7 @@ class KscMissionLabApp {
     this.activeModalId = null;
     this.volume = 85;
     this.savedVolume = 85;
-    this.pendingLang = window.currentLang || 'pt';
+    this.pendingLang = window.currentLang || 'pt-BR';
     this.activeGlossaryId = 'term_cubesat';
 
     this.keys = {};
@@ -318,7 +315,7 @@ class KscMissionLabApp {
     this.bindKeyboardAndMouseEvents(canvas);
     this.bindTouchControls();
 
-    this.pendingLang = window.currentLang || 'pt';
+    this.pendingLang = window.currentLang || 'pt-BR';
     this.syncVolumeSliderUI(this.volume);
     this.renderLanguageDropdown();
     this.refreshAllTranslations();
@@ -701,7 +698,7 @@ class KscMissionLabApp {
       const portraitUrl = window.AssetLoader.getPortraitDataUrl(spec.id);
       const btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = `option-card p-3 flex items-center gap-3.5 text-left transition-colors ${
+      btn.className = `option-card option-card-row p-3 gap-3.5 text-left transition-colors ${
         isSelected
           ? 'is-selected'
           : isTakenByOther
@@ -1466,13 +1463,13 @@ class KscMissionLabApp {
     container.innerHTML = `
       <div class="space-y-5">
         <div class="bench-black-box p-5">
-          <div class="font-pixel text-xs sm:text-sm text-white mb-3.5">CONHEÇA SUA EQUIPE DO KENNEDY SPACE CENTER:</div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+          <div class="font-pixel text-xs sm:text-sm text-white mb-3.5">${window.t('intro_team_title')}</div>
+          <div class="equal-cards-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
             ${window.GAME_DATA.specialists
               .map((spec) => {
                 const portrait = window.AssetLoader.getPortraitDataUrl(spec.id);
                 return `
-                  <div class="p-3 border border-white/60 bg-[#120d2b] flex items-center gap-3">
+                  <div class="p-3 border border-white/60 bg-[#120d2b] flex items-center gap-3 h-full">
                     <img src="${portrait}" alt="${window.t(`${spec.id}_name`)}" class="char-portrait-rect" />
                     <div class="min-w-0">
                       <div class="font-pixel text-xs text-white">${window.t(`${spec.id}_name`)}</div>
@@ -1485,29 +1482,29 @@ class KscMissionLabApp {
           </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div class="bench-black-box p-5">
+        <div class="equal-cards-grid grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="bench-black-box p-5 flex flex-col justify-start">
             <div class="font-pixel text-xs sm:text-sm text-white mb-2.5">${window.t('intro_step1_title')}</div>
             <p class="text-2xl text-slate-100 leading-snug">${window.t('intro_step1_desc')}</p>
           </div>
-          <div class="bench-black-box p-5">
+          <div class="bench-black-box p-5 flex flex-col justify-start">
             <div class="font-pixel text-xs sm:text-sm text-white mb-2.5">${window.t('intro_step2_title')}</div>
             <p class="text-2xl text-slate-100 leading-snug">${window.t('intro_step2_desc')}</p>
           </div>
-          <div class="bench-black-box p-5">
+          <div class="bench-black-box p-5 flex flex-col justify-start">
             <div class="font-pixel text-xs sm:text-sm text-white mb-2.5">${window.t('intro_step3_title')}</div>
             <p class="text-2xl text-slate-100 leading-snug">${window.t('intro_step3_desc')}</p>
           </div>
         </div>
 
         <div class="bench-black-box p-5 space-y-2.5">
-          <div class="font-pixel text-xs sm:text-sm text-white">DADOS DA SUA MISSÃO ATUAL: ${window.I18N.pick(evalData.mission.name)}</div>
+          <div class="font-pixel text-xs sm:text-sm text-white">${window.t('intro_curr_mission')} ${window.I18N.pick(evalData.mission.name)}</div>
           <p class="text-2xl text-slate-100">${window.I18N.pick(evalData.mission.plainWhy)}</p>
           <p class="text-2xl text-slate-200">${window.I18N.pick(evalData.mission.realStoryWho)}</p>
           <div class="spec-metrics-row">
-            <span>Orçamento Base: $${evalData.mission.budget.toLocaleString()}</span>
-            <span>Categoria: ${window.I18N.pick(evalData.mission.category)}</span>
-            <span>Órbita Selecionada: ${window.I18N.pick(evalData.orbit.shortName)}</span>
+            <span>${window.t('lbl_base_budget')} $${evalData.mission.budget.toLocaleString()}</span>
+            <span>${window.t('lbl_category')} ${window.I18N.pick(evalData.mission.category)}</span>
+            <span>${window.t('lbl_selected_orbit')} ${window.I18N.pick(evalData.orbit.shortName)}</span>
           </div>
         </div>
 
@@ -1530,7 +1527,7 @@ class KscMissionLabApp {
 
         <div>
           <h3 class="font-pixel text-sm sm:text-base text-white mb-3.5">${window.t('s1_contracts')}</h3>
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div class="equal-cards-grid grid grid-cols-1 lg:grid-cols-2 gap-4">
             ${window.GAME_DATA.missions
               .map((m) => {
                 const active = s.missionId === m.id;
@@ -1542,11 +1539,11 @@ class KscMissionLabApp {
                         ${active ? `<span class="px-2.5 py-1 bg-white text-[#090714] font-pixel text-[10px] shrink-0">${window.t('wb_selected')}</span>` : ''}
                       </div>
                       <p class="text-slate-100 text-2xl leading-snug mb-2.5">${window.I18N.pick(m.description)}</p>
-                      <p class="text-slate-300 text-xl leading-snug">${window.I18N.pick(m.plainWhy)}</p>
+                      <p class="text-slate-300 text-xl leading-snug mb-2">${window.I18N.pick(m.plainWhy)}</p>
                     </div>
                     <div class="spec-metrics-row">
-                      <span>Orçamento: $${(m.budget / 1000).toFixed(0)}k</span>
-                      <span>Categoria: ${window.I18N.pick(m.category)}</span>
+                      <span>${window.t('lbl_budget')} $${(m.budget / 1000).toFixed(0)}k</span>
+                      <span>${window.t('lbl_category')} ${window.I18N.pick(m.category)}</span>
                     </div>
                   </div>
                 `;
@@ -1557,7 +1554,7 @@ class KscMissionLabApp {
 
         <div>
           <h3 class="font-pixel text-sm sm:text-base text-white mb-3.5">${window.t('s1_payloads')}</h3>
-          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          <div class="equal-cards-grid grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             ${window.GAME_DATA.payloads
               .map((p) => {
                 const active = s.payloadId === p.id;
@@ -1573,7 +1570,7 @@ class KscMissionLabApp {
                     <div class="spec-metrics-row">
                       <span>${p.mass.toFixed(2)} kg</span>
                       <span>-${p.powerUse} W</span>
-                      <span>${p.dataMB} MB/dia</span>
+                      <span>${p.dataMB} MB/${window.t('lbl_day')}</span>
                       <span>$${(p.cost / 1000).toFixed(0)}k</span>
                     </div>
                   </div>
@@ -1620,30 +1617,30 @@ class KscMissionLabApp {
 
         <div class="bench-black-box p-5 grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
           <div>
-            <div class="text-slate-300 text-xl">ORÇAMENTO TOTAL</div>
+            <div class="text-slate-300 text-xl">${window.t('s1_total_budget')}</div>
             <div class="font-pixel text-sm text-white mt-1.5">$${evalData.totalBudget.toLocaleString()}</div>
           </div>
           <div>
-            <div class="text-slate-300 text-xl">CUSTO DO PROJETO</div>
+            <div class="text-slate-300 text-xl">${window.t('s1_proj_cost')}</div>
             <div class="font-pixel text-sm text-white mt-1.5">$${evalData.totalCost.toLocaleString()}</div>
           </div>
           <div>
-            <div class="text-slate-300 text-xl">SALDO LIVRE</div>
+            <div class="text-slate-300 text-xl">${window.t('s1_free_balance')}</div>
             <div class="font-pixel text-sm text-white mt-1.5">$${evalData.remainingBudget.toLocaleString()}</div>
           </div>
           <div>
-            <div class="text-slate-300 text-xl">RESERVA (MÍN 10%)</div>
+            <div class="text-slate-300 text-xl">${window.t('s1_reserve_min')}</div>
             <div class="font-pixel text-sm text-white mt-1.5">${evalData.reservePct}%</div>
           </div>
         </div>
 
         <div class="font-pixel text-sm text-white pt-1">${window.t('s1_extra_options')}</div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="equal-cards-grid grid grid-cols-1 md:grid-cols-3 gap-4">
           <div class="option-card p-5 flex flex-col justify-between ${s.meritReviewPassed && s.feasibilityReviewPassed ? 'is-selected' : ''}">
             <div>
-              <div class="font-pixel text-xs text-white mb-2.5">1. REVISÃO CIENTÍFICA E PATROCÍNIO NASA</div>
-              <p class="text-slate-100 text-2xl mb-4">Aprova o mérito científico da missão e libera a carona gratuita no foguete pelo programa CSLI da NASA.</p>
+              <div class="font-pixel text-xs text-white mb-2.5">${window.t('s1_card1_title')}</div>
+              <p class="text-slate-100 text-2xl mb-4">${window.t('s1_card1_desc')}</p>
             </div>
             <button id="btn-merit-review" type="button" class="kimu-btn w-full ${s.meritReviewPassed && s.feasibilityReviewPassed ? 'kimu-btn-done' : ''}">
               ${s.meritReviewPassed && s.feasibilityReviewPassed ? window.t('s1_merit_done') : window.t('s1_merit_btn')}
@@ -1652,8 +1649,8 @@ class KscMissionLabApp {
 
           <div class="option-card p-5 flex flex-col justify-between ${s.outreachCompleted ? 'is-selected' : ''}">
             <div>
-              <div class="font-pixel text-xs text-white mb-2.5">2. CAMPANHA PÚBLICA E EDUCATIVA</div>
-              <p class="text-slate-100 text-2xl mb-4">Apresenta o satélite para escolas e visitantes no Kennedy Space Center, arrecadando +$40.000 extras para o orçamento.</p>
+              <div class="font-pixel text-xs text-white mb-2.5">${window.t('s1_card2_title')}</div>
+              <p class="text-slate-100 text-2xl mb-4">${window.t('s1_card2_desc')}</p>
             </div>
             <button id="btn-outreach" type="button" class="kimu-btn w-full ${s.outreachCompleted ? 'kimu-btn-done' : ''}">
               ${s.outreachCompleted ? window.t('s1_crowdfund_done') : window.t('s1_crowdfund_btn')}
@@ -1662,8 +1659,8 @@ class KscMissionLabApp {
 
           <div class="option-card p-5 flex flex-col justify-between ${s.noaaLicenseApproved ? 'is-selected' : ''}">
             <div>
-              <div class="font-pixel text-xs text-white mb-2.5">3. LICENÇA DE CÂMERA (NOAA)</div>
-              <p class="text-slate-100 text-2xl mb-4">Autorização oficial obrigatória para todo satélite que possui câmeras apontadas para a Terra (como BisonSat e LightSail).</p>
+              <div class="font-pixel text-xs text-white mb-2.5">${window.t('s1_card3_title')}</div>
+              <p class="text-slate-100 text-2xl mb-4">${window.t('s1_card3_desc')}</p>
             </div>
             <button id="btn-noaa" type="button" class="kimu-btn w-full ${s.noaaLicenseApproved ? 'kimu-btn-done' : ''}">
               ${s.noaaLicenseApproved ? window.t('s1_licenses_done') : window.t('s1_licenses_btn')}
@@ -1704,44 +1701,44 @@ class KscMissionLabApp {
     container.innerHTML = `
       <div class="space-y-6">
         ${this.getTopModalWarningHtml(evalData)}
-        ${this.getStageProgressBarHtml('EQUILÍBRIO TÉCNICO DO SATÉLITE (PESO, ENERGIA E SEGURANÇA)', checksOkCount, 4)}
+        ${this.getStageProgressBarHtml(window.t('s2_prog_bar'), checksOkCount, 4)}
 
         <div class="bench-black-box p-5 grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
           <div>
-            <div class="text-slate-300 text-xl">PESO ATUAL / MÁXIMO</div>
+            <div class="text-slate-300 text-xl">${window.t('s2_curr_max_mass')}</div>
             <div class="font-pixel text-sm text-white mt-1.5">${evalData.totalMass.toFixed(2)} / ${evalData.maxMass.toFixed(2)} kg</div>
           </div>
           <div>
-            <div class="text-slate-300 text-xl">GERAÇÃO SOLAR</div>
+            <div class="text-slate-300 text-xl">${window.t('s2_solar_gen')}</div>
             <div class="font-pixel text-sm text-white mt-1.5">+${evalData.effectiveSolarW} W</div>
           </div>
           <div>
-            <div class="text-slate-300 text-xl">CONSUMO DAS PEÇAS</div>
+            <div class="text-slate-300 text-xl">${window.t('s2_parts_draw')}</div>
             <div class="font-pixel text-sm text-white mt-1.5">-${evalData.totalPowerUseW} W</div>
           </div>
           <div>
-            <div class="text-slate-300 text-xl">SALDO DE ENERGIA</div>
+            <div class="text-slate-300 text-xl">${window.t('s2_power_bal')}</div>
             <div class="font-pixel text-sm text-white mt-1.5">${evalData.powerBalanceW >= 0 ? '+' : ''}${evalData.powerBalanceW} W</div>
           </div>
         </div>
 
         <div>
           <h3 class="font-pixel text-sm sm:text-base text-white mb-3">${window.t('s2_bus_title')}</h3>
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div class="equal-cards-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             ${window.GAME_DATA.chassis
               .map((c) => {
                 const active = s.chassisId === c.id;
                 return `
                   <div data-select-chassis="${c.id}" class="option-card cursor-pointer p-4 flex flex-col justify-between ${active ? 'is-selected' : ''}">
                     <div>
-                      <div class="flex items-center justify-between gap-2 mb-1.5">
+                      <div class="flex items-start justify-between gap-2 mb-1.5">
                         <span class="font-pixel text-sm text-white">${window.I18N.pick(c.name)}</span>
                         ${active ? `<span class="px-2.5 py-1 bg-white text-[#090714] font-pixel text-[10px] shrink-0">${window.t('wb_selected')}</span>` : ''}
                       </div>
-                      <p class="text-slate-100 text-2xl leading-snug">${window.I18N.pick(c.desc)}</p>
+                      <p class="text-slate-100 text-2xl leading-snug mb-2">${window.I18N.pick(c.desc)}</p>
                     </div>
                     <div class="spec-metrics-row">
-                      <span>Máx ${c.maxMass.toFixed(2)} kg</span>
+                      <span>${window.t('lbl_max')} ${c.maxMass.toFixed(2)} kg</span>
                       <span>$${(c.cost / 1000).toFixed(0)}k</span>
                     </div>
                   </div>
@@ -1752,23 +1749,23 @@ class KscMissionLabApp {
         </div>
 
         <div>
-          <h3 class="font-pixel text-sm sm:text-base text-white mb-3">2. Material da Estrutura (Segurança de Reentrada)</h3>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <h3 class="font-pixel text-sm sm:text-base text-white mb-3">${window.t('s2_struct_title')}</h3>
+          <div class="equal-cards-grid grid grid-cols-1 md:grid-cols-2 gap-4">
             ${window.GAME_DATA.structures
               .map((st) => {
                 const active = s.structureId === st.id;
                 return `
                   <div data-select-structure="${st.id}" class="option-card cursor-pointer p-4 flex flex-col justify-between ${active ? 'is-selected' : ''}">
                     <div>
-                      <div class="flex items-center justify-between gap-2 mb-1.5">
+                      <div class="flex items-start justify-between gap-2 mb-1.5">
                         <span class="font-pixel text-xs sm:text-sm text-white">${window.I18N.pick(st.name)}</span>
                         ${active ? `<span class="px-2.5 py-1 bg-white text-[#090714] font-pixel text-[10px] shrink-0">${window.t('wb_selected')}</span>` : ''}
                       </div>
-                      <p class="text-slate-100 text-2xl leading-snug">${window.I18N.pick(st.desc)}</p>
+                      <p class="text-slate-100 text-2xl leading-snug mb-2">${window.I18N.pick(st.desc)}</p>
                     </div>
                     <div class="spec-metrics-row">
-                      <span>Peso: ${st.mass.toFixed(2)} kg</span>
-                      <span>Custo: $${(st.cost / 1000).toFixed(0)}k</span>
+                      <span>${window.t('lbl_weight')} ${st.mass.toFixed(2)} kg</span>
+                      <span>${window.t('lbl_cost')} $${(st.cost / 1000).toFixed(0)}k</span>
                     </div>
                   </div>
                 `;
@@ -1779,90 +1776,94 @@ class KscMissionLabApp {
 
         <div>
           <h3 class="font-pixel text-sm sm:text-base text-white mb-3">${window.t('s2_sub_title')}</h3>
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <div class="space-y-3">
-              ${window.GAME_DATA.solarPanels
-                .map((sp) => {
-                  const active = s.solarId === sp.id;
-                  return `
-                    <div data-select-solar="${sp.id}" class="option-card cursor-pointer p-4 ${active ? 'is-selected' : ''}">
+          <div class="equal-cards-grid grid grid-cols-1 lg:grid-cols-3 lg:grid-rows-2 lg:grid-flow-col gap-4">
+            ${window.GAME_DATA.solarPanels
+              .map((sp) => {
+                const active = s.solarId === sp.id;
+                return `
+                  <div data-select-solar="${sp.id}" class="option-card cursor-pointer p-4 flex flex-col justify-between ${active ? 'is-selected' : ''}">
+                    <div>
                       <div class="flex items-start justify-between gap-2 mb-1.5">
                         <span class="font-pixel text-xs text-white">${window.I18N.pick(sp.name)}</span>
                         ${active ? `<span class="px-2 py-0.5 bg-white text-[#090714] font-pixel text-[9px] shrink-0">${window.t('wb_selected')}</span>` : ''}
                       </div>
                       <p class="text-slate-100 text-xl my-1.5">${window.I18N.pick(sp.desc)}</p>
-                      <div class="spec-metrics-row">
-                        <span>+${sp.powerGen} W</span>
-                        <span>${sp.mass.toFixed(2)} kg</span>
-                        <span>$${sp.cost / 1000}k</span>
-                      </div>
                     </div>
-                  `;
-                })
-                .join('')}
-            </div>
+                    <div class="spec-metrics-row">
+                      <span>+${sp.powerGen} W</span>
+                      <span>${sp.mass.toFixed(2)} kg</span>
+                      <span>$${sp.cost / 1000}k</span>
+                    </div>
+                  </div>
+                `;
+              })
+              .join('')}
 
-            <div class="space-y-3">
-              ${window.GAME_DATA.batteries
-                .map((b) => {
-                  const active = s.batteryId === b.id;
-                  return `
-                    <div data-select-battery="${b.id}" class="option-card cursor-pointer p-4 ${active ? 'is-selected' : ''}">
+            ${window.GAME_DATA.batteries
+              .map((b) => {
+                const active = s.batteryId === b.id;
+                return `
+                  <div data-select-battery="${b.id}" class="option-card cursor-pointer p-4 flex flex-col justify-between ${active ? 'is-selected' : ''}">
+                    <div>
                       <div class="flex items-start justify-between gap-2 mb-1.5">
                         <span class="font-pixel text-xs text-white">${window.I18N.pick(b.name)}</span>
                         ${active ? `<span class="px-2 py-0.5 bg-white text-[#090714] font-pixel text-[9px] shrink-0">${window.t('wb_selected')}</span>` : ''}
                       </div>
                       <p class="text-slate-100 text-xl my-1.5">${window.I18N.pick(b.desc)}</p>
-                      <div class="spec-metrics-row">
-                        <span>${b.mass.toFixed(2)} kg</span>
-                        <span>$${b.cost / 1000}k</span>
-                      </div>
                     </div>
-                  `;
-                })
-                .join('')}
-            </div>
+                    <div class="spec-metrics-row">
+                      <span>${b.mass.toFixed(2)} kg</span>
+                      <span>$${b.cost / 1000}k</span>
+                    </div>
+                  </div>
+                `;
+              })
+              .join('')}
 
-            <div class="space-y-3">
-              ${window.GAME_DATA.adcs
-                .map((a) => {
-                  const active = s.adcsId === a.id;
-                  return `
-                    <div data-select-adcs="${a.id}" class="option-card cursor-pointer p-4 ${active ? 'is-selected' : ''}">
+            ${window.GAME_DATA.adcs
+              .map((a) => {
+                const active = s.adcsId === a.id;
+                return `
+                  <div data-select-adcs="${a.id}" class="option-card cursor-pointer p-4 flex flex-col justify-between ${active ? 'is-selected' : ''}">
+                    <div>
                       <div class="flex items-start justify-between gap-2 mb-1.5">
                         <span class="font-pixel text-xs text-white">${window.I18N.pick(a.name)}</span>
                         ${active ? `<span class="px-2 py-0.5 bg-white text-[#090714] font-pixel text-[9px] shrink-0">${window.t('wb_selected')}</span>` : ''}
                       </div>
                       <p class="text-slate-100 text-xl my-1.5">${window.I18N.pick(a.desc)}</p>
-                      <div class="spec-metrics-row">
-                        <span>Luz: ${Math.round(a.solarEfficiency * 100)}%</span>
-                        <span>-${a.powerUse} W</span>
-                        <span>$${a.cost / 1000}k</span>
-                      </div>
                     </div>
-                  `;
-                })
-                .join('')}
-            </div>
+                    <div class="spec-metrics-row">
+                      <span>${window.t('lbl_light')} ${Math.round(a.solarEfficiency * 100)}%</span>
+                      <span>-${a.powerUse} W</span>
+                      <span>$${a.cost / 1000}k</span>
+                    </div>
+                  </div>
+                `;
+              })
+              .join('')}
           </div>
         </div>
 
         <div class="bench-black-box p-5 space-y-3">
-          <div class="font-pixel text-sm text-white">4. Trava de Segurança de Abertura (Burn Wire)</div>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div data-select-burn="single" class="option-card cursor-pointer p-4 ${s.burnWireType === 'single' ? 'is-selected' : ''}">
-              <div class="flex items-center justify-between gap-2">
-                <span class="font-pixel text-xs text-white">Trava Simples (1 Fio de Nylon)</span>
-                ${s.burnWireType === 'single' ? `<span class="px-2 py-0.5 bg-white text-[#090714] font-pixel text-[9px] shrink-0">${window.t('wb_selected')}</span>` : ''}
+          <div class="font-pixel text-sm text-white">${window.t('s2_burn_title')}</div>
+          <div class="equal-cards-grid grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div data-select-burn="single" class="option-card cursor-pointer p-4 flex flex-col justify-between ${s.burnWireType === 'single' ? 'is-selected' : ''}">
+              <div>
+                <div class="flex items-center justify-between gap-2">
+                  <span class="font-pixel text-xs text-white">${window.t('s2_burn_single_title')}</span>
+                  ${s.burnWireType === 'single' ? `<span class="px-2 py-0.5 bg-white text-[#090714] font-pixel text-[9px] shrink-0">${window.t('wb_selected')}</span>` : ''}
+                </div>
+                <p class="text-slate-100 text-xl mt-1.5">${window.t('s2_burn_single_desc')}</p>
               </div>
-              <p class="text-slate-100 text-xl mt-1.5">Mecanismo leve de retenção mecânica por fio único de nylon térmico.</p>
             </div>
-            <div data-select-burn="double" class="option-card cursor-pointer p-4 ${s.burnWireType === 'double' ? 'is-selected' : ''}">
-              <div class="flex items-center justify-between gap-2">
-                <span class="font-pixel text-xs text-white">Trava Dupla Redundante (Double Burn Wire)</span>
-                ${s.burnWireType === 'double' ? `<span class="px-2 py-0.5 bg-white text-[#090714] font-pixel text-[9px] shrink-0">${window.t('wb_selected')}</span>` : ''}
+            <div data-select-burn="double" class="option-card cursor-pointer p-4 flex flex-col justify-between ${s.burnWireType === 'double' ? 'is-selected' : ''}">
+              <div>
+                <div class="flex items-center justify-between gap-2">
+                  <span class="font-pixel text-xs text-white">${window.t('s2_burn_double_title')}</span>
+                  ${s.burnWireType === 'double' ? `<span class="px-2 py-0.5 bg-white text-[#090714] font-pixel text-[9px] shrink-0">${window.t('wb_selected')}</span>` : ''}
+                </div>
+                <p class="text-slate-100 text-xl mt-1.5">${window.t('s2_burn_double_desc')}</p>
               </div>
-              <p class="text-slate-100 text-xl mt-1.5">Mecanismo duplo independente de retenção para estruturas articuladas e desdobráveis.</p>
             </div>
           </div>
         </div>
@@ -1892,55 +1893,58 @@ class KscMissionLabApp {
     const testsList = [
       {
         key: 'cac',
-        title: '1. Inspeção de Peso e Medidas (CAC)',
-        desc: 'Confere na balança de precisão se o satélite respeita o peso máximo do chassi escolhido.',
+        title: window.t('s2_test1_title'),
+        desc: window.t('s2_test1_desc'),
         passed: s.tests.cac,
         canPass: () => {
           if (!evalData.massOk) {
             return {
               ok: false,
-              msg: `Excesso de peso (${evalData.totalMass} kg > ${evalData.maxMass} kg)! Escolha um chassi maior na Bancada 1.`
+              msg: window
+                .t('s2_test1_fail')
+                .replace('{mass}', evalData.totalMass)
+                .replace('{max}', evalData.maxMass)
             };
           }
-          return { ok: true, msg: 'Inspeção de peso e medidas aprovada!' };
+          return { ok: true, msg: window.t('s2_test1_ok') };
         }
       },
       {
         key: 'shaker',
-        title: '2. Mesa de Vibração (Shaker DS-9000)',
-        desc: 'Sacode o satélite simulando a vibração violenta do foguete na decolagem.',
+        title: window.t('s2_test2_title'),
+        desc: window.t('s2_test2_desc'),
         passed: s.tests.shaker,
         canPass: () => {
           if (evalData.doubleBurnRequired && s.burnWireType !== 'double') {
             this.missionState.shakerReworkPenalty = (this.missionState.shakerReworkPenalty || 0) + 5000;
             return {
               ok: false,
-              msg: 'Falha na vibração! Revise o sistema de trava de abertura na Bancada 1.'
+              msg: window.t('s2_test2_fail')
             };
           }
-          return { ok: true, msg: 'Teste de vibração aprovado com sucesso!' };
+          return { ok: true, msg: window.t('s2_test2_ok') };
         }
       },
       {
         key: 'tvac',
-        title: '3. Câmara de Vácuo Térmico (TVAC)',
-        desc: 'Testa o satélite sem ar e sob temperaturas extremas do espaço (-40°C a +80°C).',
+        title: window.t('s2_test3_title'),
+        desc: window.t('s2_test3_desc'),
         passed: s.tests.tvac,
-        canPass: () => ({ ok: true, msg: 'Câmara de vácuo térmico aprovada!' })
+        canPass: () => ({ ok: true, msg: window.t('s2_test3_ok') })
       },
       {
         key: 'ditl',
-        title: '4. Simulação de Energia em Órbita (DITL)',
-        desc: 'Liga todos os instrumentos por 24 horas para provar que o saldo de energia não fica negativo.',
+        title: window.t('s2_test4_title'),
+        desc: window.t('s2_test4_desc'),
         passed: s.tests.ditl,
         canPass: () => {
           if (!evalData.powerOk) {
             return {
               ok: false,
-              msg: `Falta de energia (${evalData.powerBalanceW} W)! Ajuste a geração ou o consumo elétrico na Bancada 1.`
+              msg: window.t('s2_test4_fail').replace('{power}', evalData.powerBalanceW)
             };
           }
-          return { ok: true, msg: 'Simulação de energia em órbita aprovada!' };
+          return { ok: true, msg: window.t('s2_test4_ok') };
         }
       }
     ];
@@ -1955,14 +1959,14 @@ class KscMissionLabApp {
           <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
               <div class="font-pixel text-sm text-white">
-                ${evalData.allTestsPassed ? 'STATUS: TODOS OS 4 TESTES APROVADOS' : `PROGRESSO DOS TESTES: ${passedCount} DE 4 CONCLUÍDOS`}
+                ${evalData.allTestsPassed ? window.t('s2_status_all_ok') : window.t('s2_status_prog').replace('{done}', passedCount)}
               </div>
               <p class="text-slate-100 text-2xl mt-1">
                 ${evalData.allTestsPassed ? window.t('s3_all_approved_banner') : window.t('s3_pending_banner')}
               </p>
             </div>
             <button id="btn-run-all-tests" type="button" class="kimu-btn ${evalData.allTestsPassed ? 'kimu-btn-done' : ''}">
-              ${evalData.allTestsPassed ? 'TODOS OS TESTES APROVADOS' : 'EXECUTAR TODOS OS 4 TESTES'}
+              ${evalData.allTestsPassed ? window.t('s2_btn_all_done') : window.t('s2_btn_run_all')}
             </button>
           </div>
           <div class="kimu-progress-track">
@@ -1970,7 +1974,7 @@ class KscMissionLabApp {
           </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="equal-cards-grid grid grid-cols-1 md:grid-cols-2 gap-4">
           ${testsList
             .map(
               (tItem) => `
@@ -1985,7 +1989,7 @@ class KscMissionLabApp {
                   <p class="text-slate-100 text-2xl mb-4">${tItem.desc}</p>
                 </div>
                 <button data-run-test="${tItem.key}" type="button" class="kimu-btn w-full ${tItem.passed ? 'kimu-btn-done' : ''}">
-                  ${tItem.passed ? 'TESTE APROVADO' : 'EXECUTAR ESTE TESTE'}
+                  ${tItem.passed ? window.t('s2_btn_test_done') : window.t('s2_btn_run_one')}
                 </button>
               </div>
             `
@@ -2024,7 +2028,7 @@ class KscMissionLabApp {
       });
       if (allOk) {
         this.missionState.testsInvalidatedByChange = false;
-        this.showToast('Todos os 4 testes ambientais foram aprovados!');
+        this.showToast(window.t('toast_all_tests_ok'));
       } else {
         this.showToast(firstError, true);
       }
@@ -2043,14 +2047,14 @@ class KscMissionLabApp {
     const tabsHtml = `
       <div class="space-y-4 mb-5">
         ${this.getTopModalWarningHtml(evalData)}
-        ${this.getStageProgressBarHtml('PREPARAÇÃO DE COMUNICAÇÃO E CLIMA', stage3DoneCount, 3)}
+        ${this.getStageProgressBarHtml(window.t('s3_prog_bar'), stage3DoneCount, 3)}
 
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
           ${[
-            { id: 'comms', label: '1. RÁDIO E ANTENA' },
-            { id: 'weather', label: '2. CLIMA NO CABO' },
-            { id: 'poll', label: '3. CHECKLIST (8 ITENS)' },
-            { id: 'tracking', label: '4. RASTREIO TLE' }
+            { id: 'comms', label: window.t('s3_tab_comms') },
+            { id: 'weather', label: window.t('s3_tab_weather') },
+            { id: 'poll', label: window.t('s3_tab_poll') },
+            { id: 'tracking', label: window.t('s3_tab_tracking') }
           ]
             .map(
               (tObj) => `
@@ -2071,17 +2075,17 @@ class KscMissionLabApp {
         <div class="space-y-5">
           <div class="bench-black-box p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div>
-              <div class="font-pixel text-xs sm:text-sm text-white">REGISTRO DE FREQUÊNCIA DE RÁDIO (FCC / IARU)</div>
-              <p class="text-slate-100 text-2xl mt-1">Autoriza o satélite a transmitir sinais de rádio para as estações na Terra sem interferência.</p>
+              <div class="font-pixel text-xs sm:text-sm text-white">${window.t('s3_fcc_title')}</div>
+              <p class="text-slate-100 text-2xl mt-1">${window.t('s3_fcc_desc')}</p>
             </div>
             <button id="btn-fcc-license" type="button" class="kimu-btn shrink-0 ${s.fccLicenseApproved ? 'kimu-btn-done' : ''}">
-              ${s.fccLicenseApproved ? 'FREQUÊNCIA FCC APROVADA' : 'APROVAR LICENÇA DE RÁDIO FCC'}
+              ${s.fccLicenseApproved ? window.t('s3_fcc_done') : window.t('s3_fcc_btn')}
             </button>
           </div>
 
           <div>
-            <h3 class="font-pixel text-sm sm:text-base text-white mb-3">${window.t('s3_gs_title')} (Volume gerado pelo sensor atual: ${evalData.generatedMB} MB/dia)</h3>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <h3 class="font-pixel text-sm sm:text-base text-white mb-3">${window.t('s3_gs_title')} (${window.t('s3_vol_gen')} ${evalData.generatedMB} MB/${window.t('lbl_day')})</h3>
+            <div class="equal-cards-grid grid grid-cols-1 md:grid-cols-3 gap-4">
               ${window.GAME_DATA.groundStations
                 .map((gs) => {
                   const active = s.groundStationId === gs.id;
@@ -2095,7 +2099,7 @@ class KscMissionLabApp {
                         <p class="text-slate-100 text-2xl mb-3">${window.I18N.pick(gs.desc)}</p>
                       </div>
                       <div class="spec-metrics-row">
-                        <span>Envia: ${gs.downlinkMB} MB/dia</span>
+                        <span>${window.t('lbl_sends')} ${gs.downlinkMB} MB/${window.t('lbl_day')}</span>
                         <span>-${gs.powerUse} W</span>
                         <span>$${gs.cost / 1000}k</span>
                       </div>
@@ -2112,14 +2116,14 @@ class KscMissionLabApp {
       tabBody = `
         <div class="bench-black-box p-6 space-y-4">
           <div class="font-pixel text-sm text-white">
-            ${isStorm ? 'STATUS DO RADAR: TEMPESTADE E RAIOS SOBRE A PLATAFORMA 39A' : 'STATUS DO RADAR: CÉU LIMPO E VENTOS SEGUROS PARA LANÇAMENTO'}
+            ${isStorm ? window.t('s3_weather_storm_title') : window.t('s3_weather_clear_title')}
           </div>
           <p class="text-slate-100 text-2xl">
-            Na Flórida, foguetes não podem decolar durante tempestades elétricas. Se o radar indicar tempestade, aguarde a próxima janela meteorológica limpa!
+            ${window.t('s3_weather_desc')}
           </p>
           <div class="flex flex-wrap gap-3">
             <button id="btn-weather-scrub" type="button" class="kimu-btn ${!isStorm ? 'kimu-btn-done' : ''}">
-              ${!isStorm ? 'JANELA METEOROLÓGICA LIMPA (APROVADO)' : 'AGUARDAR CÉU LIMPO PARA LANÇAMENTO'}
+              ${!isStorm ? window.t('s3_weather_clear_btn') : window.t('s3_weather_wait_btn')}
             </button>
           </div>
         </div>
@@ -2127,14 +2131,14 @@ class KscMissionLabApp {
     } else if (activeTab === 'poll') {
       tabBody = `
         <div class="space-y-4">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div class="equal-cards-grid grid grid-cols-1 md:grid-cols-2 gap-3">
             ${evalData.pollGates
               .map(
                 (gate) => `
-                <div class="p-4 border-2 ${gate.ok ? 'border-white bg-[#090714]' : 'border-rose-400 bg-rose-950/70'} flex items-center justify-between gap-3">
+                <div class="p-4 border-2 ${gate.ok ? 'border-white bg-[#090714]' : 'border-rose-400 bg-rose-950/70'} flex items-center justify-between gap-3 h-full">
                   <span class="text-white text-2xl">${window.I18N.pick(gate.label)}</span>
-                  <span class="font-pixel text-[10px] px-2.5 py-1 border border-white ${gate.ok ? 'bg-white text-[#090714]' : 'bg-rose-900 text-white'}">
-                    ${gate.ok ? 'PRONTO' : 'PENDENTE'}
+                  <span class="font-pixel text-[10px] px-2.5 py-1 border border-white shrink-0 ${gate.ok ? 'bg-white text-[#090714]' : 'bg-rose-900 text-white'}">
+                    ${gate.ok ? window.t('s3_gate_ready') : window.t('s3_gate_pending')}
                   </span>
                 </div>
               `
@@ -2149,17 +2153,17 @@ class KscMissionLabApp {
       tabBody = `
         <div class="space-y-4">
           <div class="bench-black-box p-5 font-mono text-base text-white space-y-1.5">
-            <div class="font-pixel text-xs text-slate-300 mb-2">DADOS DE RASTREIO ORBITAL (TLE DA NASA):</div>
+            <div class="font-pixel text-xs text-slate-300 mb-2">${window.t('s3_tle_title')}</div>
             <div>0 ${tle.satName}</div>
             <div>${tle.line1}</div>
             <div>${tle.line2}</div>
             <p class="font-pixel-body text-2xl text-slate-200 pt-2">
-              Explicação: Estas duas linhas de números (chamadas TLE) dizem para as antenas na Terra exatamente onde o seu satélite está passando a cada minuto!
+              ${window.t('s3_tle_explain')}
             </p>
           </div>
           <div class="flex flex-wrap gap-3">
-            <button id="btn-decode-beacon" type="button" class="kimu-btn flex-1">TESTAR SINAL DO SATÉLITE</button>
-            <button id="btn-open-report-from-tracking" type="button" class="kimu-btn flex-1">VER RELATÓRIO E PONTUAÇÃO</button>
+            <button id="btn-decode-beacon" type="button" class="kimu-btn flex-1">${window.t('s3_btn_beacon')}</button>
+            <button id="btn-open-report-from-tracking" type="button" class="kimu-btn flex-1">${window.t('s3_btn_report')}</button>
           </div>
         </div>
       `;
@@ -2191,12 +2195,12 @@ class KscMissionLabApp {
       this.missionState.weatherStatus = 'clear';
       this.missionState.weatherScrubCount = (this.missionState.weatherScrubCount || 0) + 1;
       this.syncAndRefresh(false, 2);
-      this.showToast('Céu limpo na Plataforma 39A!');
+      this.showToast(window.t('toast_weather_ok'));
     });
 
     container.querySelector('#btn-lcc-launch')?.addEventListener('click', () => {
       if (!evalData.readyForLaunch) {
-        this.showToast('Conclua os itens pendentes do checklist antes de lançar!', true);
+        this.showToast(window.t('toast_poll_pending'), true);
         return;
       }
       this.initiateCountdownAndLaunch();
@@ -2205,7 +2209,7 @@ class KscMissionLabApp {
     container.querySelector('#btn-decode-beacon')?.addEventListener('click', () => {
       this.missionState.firstContactDecoded = true;
       this.syncAndRefresh(false, 1);
-      this.showToast('Sinal do satélite recebido com sucesso!');
+      this.showToast(window.t('toast_beacon_ok'));
     });
 
     container.querySelector('#btn-open-report-from-tracking')?.addEventListener('click', () => {
@@ -2223,39 +2227,41 @@ class KscMissionLabApp {
     container.innerHTML = `
       <div class="space-y-6">
         ${this.getTopModalWarningHtml(evalData)}
-        ${this.getStageProgressBarHtml('PREPARAÇÃO NA PLATAFORMA 39A', padDoneCount, 3)}
+        ${this.getStageProgressBarHtml(window.t('s4_prog_bar'), padDoneCount, 3)}
 
         <div class="bench-black-box p-5 space-y-3.5">
-          <div class="font-pixel text-sm text-white">1. Preparação Final na Plataforma 39A (Clique nos 3 passos)</div>
+          <div class="font-pixel text-sm text-white">${window.t('s4_prep_title')}</div>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
             <button id="btn-step1-dispenser" type="button" class="kimu-btn w-full ${s.dispenserLoaded ? 'kimu-btn-done' : ''}">
-              ${s.dispenserLoaded ? '1. NO EJETOR (OK)' : '1. COLOCAR NO EJETOR'}
+              ${s.dispenserLoaded ? window.t('s4_step1_done') : window.t('s4_step1_btn')}
             </button>
             <button id="btn-step2-rbf" type="button" class="kimu-btn w-full ${s.rbfRemovedAtPad ? 'kimu-btn-done' : ''}">
-              ${s.rbfRemovedAtPad ? '2. PINO RBF REMOVIDO (OK)' : '2. RETIRAR PINO RBF'}
+              ${s.rbfRemovedAtPad ? window.t('s4_step2_done') : window.t('s4_step2_btn')}
             </button>
             <button id="btn-step3-crawler" type="button" class="kimu-btn w-full ${s.crawlerTransported ? 'kimu-btn-done' : ''}">
-              ${s.crawlerTransported ? '3. NA PLATAFORMA 39A (OK)' : '3. LEVAR COM TRATOR CRAWLER'}
+              ${s.crawlerTransported ? window.t('s4_step3_done') : window.t('s4_step3_btn')}
             </button>
           </div>
         </div>
 
         <div>
           <h3 class="font-pixel text-sm sm:text-base text-white mb-3">${window.t('s2_orbit_title')}</h3>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="equal-cards-grid grid grid-cols-1 md:grid-cols-2 gap-4">
             ${window.GAME_DATA.orbits
               .map((orb) => {
                 const active = s.orbitId === orb.id;
                 return `
-                  <div data-select-orbit="${orb.id}" class="option-card cursor-pointer p-5 ${active ? 'is-selected' : ''}">
-                    <div class="flex items-start justify-between gap-2 mb-1.5">
-                      <span class="font-pixel text-xs sm:text-sm text-white">${window.I18N.pick(orb.name)}</span>
-                      ${active ? `<span class="px-2.5 py-1 bg-white text-[#090714] font-pixel text-[10px] shrink-0">${window.t('wb_selected')}</span>` : ''}
+                  <div data-select-orbit="${orb.id}" class="option-card cursor-pointer p-5 flex flex-col justify-between ${active ? 'is-selected' : ''}">
+                    <div>
+                      <div class="flex items-start justify-between gap-2 mb-1.5">
+                        <span class="font-pixel text-xs sm:text-sm text-white">${window.I18N.pick(orb.name)}</span>
+                        ${active ? `<span class="px-2.5 py-1 bg-white text-[#090714] font-pixel text-[10px] shrink-0">${window.t('wb_selected')}</span>` : ''}
+                      </div>
+                      <p class="text-slate-100 text-2xl leading-snug mb-2">${window.I18N.pick(orb.coverage)}</p>
                     </div>
-                    <p class="text-slate-100 text-2xl leading-snug">${window.I18N.pick(orb.coverage)}</p>
                     <div class="spec-metrics-row">
-                      <span>Altura: ${orb.altitudeKm.toLocaleString()} km</span>
-                      <span>Inclinação: ${orb.inclinationDeg}°</span>
+                      <span>${window.t('lbl_altitude')} ${orb.altitudeKm.toLocaleString()} km</span>
+                      <span>${window.t('lbl_inclination')} ${orb.inclinationDeg}°</span>
                     </div>
                   </div>
                 `;
@@ -2266,7 +2272,7 @@ class KscMissionLabApp {
 
         <div>
           <h3 class="font-pixel text-sm sm:text-base text-white mb-3">${window.t('s4_rocket_title')}</h3>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="equal-cards-grid grid grid-cols-1 md:grid-cols-3 gap-4">
             ${window.GAME_DATA.rockets
               .map((rk) => {
                 const active = s.rocketId === rk.id;
@@ -2280,8 +2286,8 @@ class KscMissionLabApp {
                       <p class="text-slate-100 text-2xl leading-snug mb-3">${window.I18N.pick(rk.desc)}</p>
                     </div>
                     <div class="spec-metrics-row">
-                      <span>Custo: ${rk.cost === 0 ? '$0 (Patrocínio NASA)' : `$${rk.cost / 1000}k`}</span>
-                      <span>Suporta até ${rk.maxUnits}U</span>
+                      <span>${window.t('lbl_cost')} ${rk.cost === 0 ? window.t('lbl_nasa_grant') : `$${rk.cost / 1000}k`}</span>
+                      <span>${window.t('lbl_up_to')} ${rk.maxUnits}U</span>
                     </div>
                   </div>
                 `;
@@ -2330,8 +2336,8 @@ class KscMissionLabApp {
       if (!evalData.readyForLaunch) {
         const missingGate = evalData.pollGates.find((g) => !g.ok);
         const msg = missingGate
-          ? `Pendência antes de lançar: ${window.I18N.pick(missingGate.label)}`
-          : 'Conclua as etapas nas 4 salas antes de lançar!';
+          ? `${window.t('toast_launch_missing')} ${window.I18N.pick(missingGate.label)}`
+          : window.t('toast_launch_incomplete');
         this.showToast(msg, true);
         return;
       }
@@ -2344,7 +2350,7 @@ class KscMissionLabApp {
     container.innerHTML = `
       <div class="space-y-5">
         <div id="ksc-map-canvas-holder" class="w-full border-2 border-white bg-[#090714] flex justify-center"></div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="equal-cards-grid grid grid-cols-1 md:grid-cols-2 gap-4">
           ${[1, 2, 3, 4]
             .map((rId) => {
               const isHere = activeChar.room === rId;
@@ -2354,7 +2360,7 @@ class KscMissionLabApp {
                     <div class="font-pixel text-xs sm:text-sm text-white mb-2">${window.t(`room${rId}_name`)}</div>
                     <p class="text-slate-100 text-2xl mb-4">${window.t(`room${rId}_sub`)}</p>
                   </div>
-                  <button type="button" class="kimu-btn w-full">${isHere ? 'VOCÊ ESTÁ NESTA SALA' : `IR PARA A SALA ${rId}`}</button>
+                  <button type="button" class="kimu-btn w-full">${isHere ? window.t('map_here_btn') : window.t('map_goto_btn').replace('{num}', rId)}</button>
                 </div>
               `;
             })
@@ -2476,29 +2482,29 @@ class KscMissionLabApp {
     const m = evalData.mission;
 
     const scoreRows = [
-      { label: 'Ciência e Sensor Correto', val: sb.scienceScore, max: 300 },
-      { label: 'Capacidade de Transmissão de Dados', val: sb.dataScore, max: 200 },
-      { label: 'Engenharia, Segurança e 4 Testes', val: sb.engScore, max: 220 },
-      { label: 'Licenças (NOAA/FCC), Clima e Operações', val: sb.opsScore, max: 140 },
-      { label: 'Gestão do Orçamento e Reserva de 10%', val: sb.financeScore, max: 140 }
+      { label: window.t('rep_row_sci'), val: sb.scienceScore, max: 300 },
+      { label: window.t('rep_row_data'), val: sb.dataScore, max: 200 },
+      { label: window.t('rep_row_eng'), val: sb.engScore, max: 220 },
+      { label: window.t('rep_row_ops'), val: sb.opsScore, max: 140 },
+      { label: window.t('rep_row_fin'), val: sb.financeScore, max: 140 }
     ];
 
     container.innerHTML = `
       <div class="space-y-6">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div class="bench-black-box p-5 text-center space-y-2">
+        <div class="equal-cards-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bench-black-box p-5 text-center flex flex-col justify-center gap-2">
             <div class="font-pixel text-xs text-slate-300">${window.t('rep_score')}</div>
             <div class="font-pixel text-2xl text-white">${sb.totalScore} / 1000</div>
           </div>
-          <div class="bench-black-box p-5 text-center space-y-2">
+          <div class="bench-black-box p-5 text-center flex flex-col justify-center gap-2">
             <div class="font-pixel text-xs text-slate-300">${window.t('rep_budget_left')}</div>
             <div class="font-pixel text-xl text-white">$${evalData.remainingBudget.toLocaleString()} (${evalData.reservePct}%)</div>
           </div>
-          <div class="bench-black-box p-5 text-center space-y-2">
+          <div class="bench-black-box p-5 text-center flex flex-col justify-center gap-2">
             <div class="font-pixel text-xs text-slate-300">${window.t('rep_mass_final')}</div>
             <div class="font-pixel text-xl text-white">${evalData.totalMass.toFixed(2)} / ${evalData.maxMass.toFixed(2)} kg</div>
           </div>
-          <div class="bench-black-box p-5 text-center space-y-2">
+          <div class="bench-black-box p-5 text-center flex flex-col justify-center gap-2">
             <div class="font-pixel text-xs text-slate-300">${window.t('rep_power_final')}</div>
             <div class="font-pixel text-xl text-white">${evalData.powerBalanceW >= 0 ? '+' : ''}${evalData.powerBalanceW} W</div>
           </div>
@@ -2529,26 +2535,32 @@ class KscMissionLabApp {
         <div class="bench-black-box p-6 space-y-4">
           <div class="font-pixel text-sm text-white">${window.t('rep_real_history_title')}: ${window.I18N.pick(m.name)}</div>
 
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="p-4 border border-white/50 bg-[#120d2b] space-y-2">
-              <div class="font-pixel text-xs text-white">1. QUEM CONSTRUIU E POR QUÊ?</div>
-              <p class="text-slate-100 text-2xl leading-snug">${window.I18N.pick(m.realStoryWho)}</p>
-              <p class="text-slate-300 text-xl leading-snug pt-1">${window.I18N.pick(m.plainWhy)}</p>
+          <div class="equal-cards-grid grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="p-4 border border-white/50 bg-[#120d2b] flex flex-col justify-between gap-2">
+              <div class="space-y-2">
+                <div class="font-pixel text-xs text-white">${window.t('rep_h1_title')}</div>
+                <p class="text-slate-100 text-2xl leading-snug">${window.I18N.pick(m.realStoryWho)}</p>
+              </div>
+              <p class="text-slate-300 text-xl leading-snug border-t border-white/30 pt-2 mt-2">${window.I18N.pick(m.plainWhy)}</p>
             </div>
 
-            <div class="p-4 border border-white/50 bg-[#120d2b] space-y-2">
-              <div class="font-pixel text-xs text-white">2. COMO FOI O VOO REAL?</div>
-              <p class="text-slate-100 text-2xl leading-snug">${window.I18N.pick(m.realStoryLaunch)}</p>
-              <p class="text-slate-300 text-xl leading-snug pt-1">${window.I18N.pick(m.realStoryImpact)}</p>
+            <div class="p-4 border border-white/50 bg-[#120d2b] flex flex-col justify-between gap-2">
+              <div class="space-y-2">
+                <div class="font-pixel text-xs text-white">${window.t('rep_h2_title')}</div>
+                <p class="text-slate-100 text-2xl leading-snug">${window.I18N.pick(m.realStoryLaunch)}</p>
+              </div>
+              <p class="text-slate-300 text-xl leading-snug border-t border-white/30 pt-2 mt-2">${window.I18N.pick(m.realStoryImpact)}</p>
             </div>
 
-            <div class="p-4 border border-white/50 bg-[#120d2b] space-y-2">
-              <div class="font-pixel text-xs text-white">3. SEU SATÉLITE VS. SATÉLITE REAL</div>
-              <p class="text-slate-100 text-2xl leading-snug">${window.I18N.pick(m.nasaRealBenchmark)}</p>
+            <div class="p-4 border border-white/50 bg-[#120d2b] flex flex-col justify-between gap-2">
+              <div class="space-y-2">
+                <div class="font-pixel text-xs text-white">${window.t('rep_h3_title')}</div>
+                <p class="text-slate-100 text-2xl leading-snug">${window.I18N.pick(m.nasaRealBenchmark)}</p>
+              </div>
               <div class="border-t border-white/30 pt-2 mt-2 text-xl text-white space-y-1">
-                <div>• Seu Chassi: ${this.missionState.chassisId} (${evalData.totalMass} kg)</div>
-                <div>• Sua Órbita: ${window.I18N.pick(evalData.orbit.shortName)}</div>
-                <div>• Seu Foguete: ${window.I18N.pick(evalData.rocket.name)}</div>
+                <div>• ${window.t('rep_your_chassis')} ${this.missionState.chassisId} (${evalData.totalMass} kg)</div>
+                <div>• ${window.t('rep_your_orbit')} ${window.I18N.pick(evalData.orbit.shortName)}</div>
+                <div>• ${window.t('rep_your_rocket')} ${window.I18N.pick(evalData.rocket.name)}</div>
               </div>
             </div>
           </div>

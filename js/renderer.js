@@ -66,6 +66,10 @@ class AssetLoaderManager {
   }
 
   get(key) {
+    if (key === 'map_ksc' && !this.images[key] && this.lastMapLang !== window.currentLang) {
+      this.procedural['map_ksc'] = this.createKscMapSprite();
+      this.lastMapLang = window.currentLang;
+    }
     return this.images[key] || this.procedural[key];
   }
 
@@ -628,32 +632,32 @@ class AssetLoaderManager {
         num: 1,
         x: 235,
         y: 335,
-        title: '1. CIÊNCIA (SLSL)',
-        sub: 'Missão e Orçamento',
+        title: window.t('map_n1_title'),
+        sub: window.t('map_n1_sub'),
         color: '#2563eb'
       },
       {
         num: 2,
         x: 265,
         y: 135,
-        title: '2. SALA LIMPA',
-        sub: 'Satélite e Testes',
+        title: window.t('map_n2_title'),
+        sub: window.t('map_n2_sub'),
         color: '#0d9488'
       },
       {
         num: 3,
         x: 565,
         y: 315,
-        title: '3. CONTROLE (LCC)',
-        sub: 'Antena e Clima',
+        title: window.t('map_n3_title'),
+        sub: window.t('map_n3_sub'),
         color: '#d97706'
       },
       {
         num: 4,
         x: 755,
         y: 140,
-        title: '4. PAD 39A / VAB',
-        sub: 'Foguete e Decolagem',
+        title: window.t('map_n4_title'),
+        sub: window.t('map_n4_sub'),
         color: '#dc2626'
       }
     ];
@@ -852,13 +856,13 @@ class AssetLoaderManager {
     });
 
     ctx.fillStyle = '#090714';
-    ctx.fillRect(16, 14, 304, 40);
+    ctx.fillRect(16, 14, 340, 40);
     ctx.strokeStyle = '#ffffff';
-    ctx.strokeRect(16, 14, 304, 40);
+    ctx.strokeRect(16, 14, 340, 40);
     ctx.fillStyle = '#38bdf8';
     ctx.font = '11px "Press Start 2P", monospace';
     ctx.textAlign = 'left';
-    ctx.fillText('CABO CANAVERAL: KSC MAP', 30, 39);
+    ctx.fillText(window.t('map_header_tag'), 30, 39);
 
     return c;
   }
@@ -1627,17 +1631,17 @@ class GameRenderer {
     if (elapsedSec < 4.2) {
       const altKm = (Math.pow(elapsedSec / 4.2, 2) * 68).toFixed(1);
       const velKmh = Math.round(Math.pow(elapsedSec / 4.2, 1.6) * 7800).toLocaleString();
-      phaseTitle = `FASE 1/3 - DECOLAGEM PAD 39A: ${window.I18N.pick(evalData.rocket.name)}`;
-      telemetryLine = `ALTITUDE: ${altKm} km  |  VELOCIDADE: ${velKmh} km/h  |  PROPULSÃO: NOMINAL`;
+      phaseTitle = `${window.t('cut_p1')} ${window.I18N.pick(evalData.rocket.name)}`;
+      telemetryLine = `${window.t('cut_alt')} ${altKm} km  |  ${window.t('cut_vel')} ${velKmh} km/h  |  ${window.t('cut_prop')}`;
     } else if (elapsedSec < 7.2) {
       const p2 = (elapsedSec - 4.2) / 3.0;
       const altKm = (68 + p2 * (evalData.orbit.altitudeKm - 68)).toFixed(0);
       const velKmh = Math.round(7800 + p2 * 19800).toLocaleString();
-      phaseTitle = `FASE 2/3 - SEPARAÇÃO DE COIFA E EJEÇÃO DO DISPENSER P-POD`;
-      telemetryLine = `ALTITUDE: ${altKm} km  |  VELOCIDADE: ${velKmh} km/h  |  CHASSI: ${evalData.chassis.id}`;
+      phaseTitle = window.t('cut_p2');
+      telemetryLine = `${window.t('cut_alt')} ${altKm} km  |  ${window.t('cut_vel')} ${velKmh} km/h  |  ${window.t('cut_chassis')} ${evalData.chassis.id}`;
     } else {
-      phaseTitle = `FASE 3/3 - EM ÓRBITA (${window.I18N.pick(evalData.orbit.shortName)}): PAINÉIS ABERTOS & SINAL TLE ATIVO`;
-      telemetryLine = `ALTITUDE: ${evalData.orbit.altitudeKm.toLocaleString()} km  |  VELOCIDADE: 27.600 km/h  |  ENERGIA: +${evalData.effectiveSolarW}W`;
+      phaseTitle = window.t('cut_p3').replace('{orbit}', window.I18N.pick(evalData.orbit.shortName));
+      telemetryLine = `${window.t('cut_alt')} ${evalData.orbit.altitudeKm.toLocaleString()} km  |  ${window.t('cut_vel')} 27.600 km/h  |  ${window.t('cut_pwr')} +${evalData.effectiveSolarW}W`;
     }
 
     ctx.fillStyle = '#38bdf8';
