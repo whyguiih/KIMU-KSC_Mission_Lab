@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>KIMU: KSC Mission Lab</title>
+
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet" />
+
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <script src="https://unpkg.com/mqtt@5.3.4/dist/mqtt.min.js"></script>
+
+  
+  <link rel="stylesheet" href="./css/styles.css" />
+</head>
+
+<body class="w-full h-dvh overflow-hidden select-none">
+
+  
+  <main id="main-menu-screen"
+    class="relative w-full h-dvh flex flex-col items-center justify-between py-6 px-4 overflow-hidden">
+
+    
+    <canvas id="menu-bg-canvas" width="1280" height="720"></canvas>
+
+    
+    <div class="relative z-10 pointer-events-none mt-1">
+      <svg width="148" height="30" viewBox="0 0 68 14" shape-rendering="crispEdges">
+        <rect x="6" y="4" width="2" height="6" fill="#ffffff" />
+        <rect x="4" y="6" width="6" height="2" fill="#ffffff" />
+        <rect x="0" y="6" width="2" height="2" fill="#ffffff" opacity="0.7" />
+        <rect x="12" y="6" width="44" height="2" fill="#ffffff" opacity="0.65" />
+        <rect x="33" y="0" width="2" height="14" fill="#ffffff" />
+        <rect x="27" y="6" width="14" height="2" fill="#ffffff" />
+        <rect x="31" y="4" width="6" height="6" fill="#ffffff" />
+        <rect x="29" y="5" width="10" height="4" fill="#ffffff" />
+        <rect x="32" y="2" width="4" height="10" fill="#ffffff" />
+        <rect x="60" y="4" width="2" height="6" fill="#ffffff" />
+        <rect x="58" y="6" width="6" height="2" fill="#ffffff" />
+        <rect x="66" y="6" width="2" height="2" fill="#ffffff" opacity="0.7" />
+      </svg>
+    </div>
+
+    
+    <div class="relative z-10 flex-1 w-full flex items-center justify-center my-2">
+
+      
+      <div id="menu-main-view" class="flex flex-col items-center justify-center">
+        
+        <div class="relative mb-9 sm:mb-11">
+          <svg class="w-[280px] sm:w-[360px] h-auto" viewBox="0 0 110 46" shape-rendering="crispEdges"
+            aria-label="KIMU">
+            
+            <rect x="9" y="0" width="2" height="2" fill="#ffffff" />
+            <rect x="9" y="3" width="2" height="12" fill="#ffffff" />
+            <rect x="9" y="16" width="2" height="2" fill="#ffffff" />
+            <rect x="0" y="8" width="2" height="2" fill="#ffffff" />
+            <rect x="3" y="8" width="14" height="2" fill="#ffffff" />
+            <rect x="18" y="8" width="2" height="2" fill="#ffffff" />
+            <rect x="7" y="6" width="6" height="6" fill="#ffffff" />
+            <rect x="5" y="7" width="10" height="4" fill="#ffffff" />
+            <rect x="8" y="4" width="4" height="10" fill="#ffffff" />
+
+            
+            <rect x="22" y="13" width="3" height="18" fill="#ffffff" />
+            <rect x="25" y="20" width="6" height="3" fill="#ffffff" />
+            <rect x="31" y="13" width="3" height="7" fill="#ffffff" />
+            <rect x="31" y="23" width="3" height="8" fill="#ffffff" />
+
+            
+            <rect x="38" y="13" width="12" height="3" fill="#ffffff" />
+            <rect x="42.5" y="16" width="3" height="12" fill="#ffffff" />
+            <rect x="38" y="28" width="12" height="3" fill="#ffffff" />
+
+            
+            <rect x="54" y="13" width="3" height="18" fill="#ffffff" />
+            <rect x="57" y="16" width="3" height="3" fill="#ffffff" />
+            <rect x="60" y="19" width="4" height="3" fill="#ffffff" />
+            <rect x="64" y="16" width="3" height="3" fill="#ffffff" />
+            <rect x="67" y="13" width="3" height="18" fill="#ffffff" />
+
+            
+            <rect x="74" y="13" width="3" height="15" fill="#ffffff" />
+            <rect x="77" y="28" width="9" height="3" fill="#ffffff" />
+            <rect x="86" y="13" width="3" height="15" fill="#ffffff" />
+
+            
+            <rect x="97" y="24" width="2" height="2" fill="#ffffff" />
+            <rect x="97" y="27" width="2" height="12" fill="#ffffff" />
+            <rect x="97" y="40" width="2" height="2" fill="#ffffff" />
+            <rect x="88" y="32" width="2" height="2" fill="#ffffff" />
+            <rect x="91" y="32" width="14" height="2" fill="#ffffff" />
+            <rect x="106" y="32" width="2" height="2" fill="#ffffff" />
+            <rect x="95" y="30" width="6" height="6" fill="#ffffff" />
+            <rect x="93" y="31" width="10" height="4" fill="#ffffff" />
+            <rect x="96" y="28" width="4" height="10" fill="#ffffff" />
+          </svg>
+        </div>
+
+        
+        <div class="flex flex-col items-center gap-4">
+          <button id="btn-menu-play" type="button" class="kimu-btn" data-i18n="menu_play">JOGAR</button>
+          <button id="btn-menu-server" type="button" class="kimu-btn" data-i18n="menu_server">SERVIDOR</button>
+          <button id="btn-menu-options" type="button" class="kimu-btn" data-i18n="menu_options">OPÇÕES</button>
+        </div>
+      </div>
+
+      
+      <div id="menu-options-view"
+        class="hidden kimu-box w-[92vw] max-w-[520px] min-h-[410px] p-7 flex flex-col justify-between">
+        <div class="space-y-7 pt-2">
+          
+          <div>
+            <div class="text-center font-pixel text-sm tracking-wider mb-3.5" data-i18n="opt_volume">VOLUME</div>
+            <div class="flex items-center gap-3 px-1">
+              <svg width="26" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2"
+                shape-rendering="crispEdges" class="shrink-0">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+              </svg>
+
+              <div class="kimu-slider-wrap">
+                <div class="kimu-slider-track">
+                  <div id="volume-slider-fill" class="kimu-slider-fill" style="width: 85%;"></div>
+                </div>
+                <svg id="volume-slider-thumb" class="kimu-slider-thumb" style="left: 85%;" viewBox="0 0 16 16"
+                  shape-rendering="crispEdges">
+                  <rect x="7" y="0" width="2" height="16" fill="#ffffff" />
+                  <rect x="0" y="7" width="16" height="2" fill="#ffffff" />
+                  <rect x="5" y="5" width="6" height="6" fill="#ffffff" />
+                </svg>
+                <input id="volume-range-input" type="range" min="0" max="100" value="85" class="kimu-range-input" />
+              </div>
+            </div>
+          </div>
+
+          
+          <div>
+            <div class="text-center font-pixel text-sm tracking-wider mb-3.5" data-i18n="opt_language">IDIOMA</div>
+            <div id="lang-dropdown-wrap" class="kimu-dropdown-wrap">
+              <button id="btn-opt-lang-select" type="button" class="kimu-field" aria-haspopup="listbox"
+                aria-expanded="false">
+                <div class="flex items-center gap-3">
+                  <span id="opt-flag-holder" class="inline-flex items-center">
+                    <svg width="24" height="16" viewBox="0 0 20 14" shape-rendering="crispEdges">
+                      <rect width="20" height="14" fill="#16a34a" />
+                      <polygon points="10,2 18,7 10,12 2,7" fill="#facc15" />
+                      <rect x="7" y="5" width="6" height="4" fill="#1d4ed8" />
+                    </svg>
+                  </span>
+                  <span id="opt-lang-text">PORTUGUÊS</span>
+                </div>
+                <svg width="16" height="12" viewBox="0 0 14 10" shape-rendering="crispEdges">
+                  <rect x="1" y="1" width="2" height="2" fill="#ffffff" />
+                  <rect x="3" y="3" width="2" height="2" fill="#ffffff" />
+                  <rect x="5" y="5" width="4" height="2" fill="#ffffff" />
+                  <rect x="9" y="3" width="2" height="2" fill="#ffffff" />
+                  <rect x="11" y="1" width="2" height="2" fill="#ffffff" />
+                </svg>
+              </button>
+
+              
+              <div id="lang-dropdown-menu" class="hidden kimu-dropdown-menu" role="listbox"></div>
+            </div>
+          </div>
+        </div>
+
+        
+        <div class="flex items-center justify-between pt-4">
+          <button id="btn-opt-back" type="button" class="kimu-btn kimu-btn-sm" data-i18n="btn_back">VOLTAR</button>
+          <button id="btn-opt-save" type="button" class="kimu-btn kimu-btn-sm" data-i18n="btn_save">SALVAR</button>
+        </div>
+      </div>
+
+      
+      <div id="menu-server-view"
+        class="hidden kimu-box w-[96vw] max-w-[960px] max-h-[88dvh] p-6 sm:p-8 flex flex-col justify-between overflow-y-auto modal-scroll">
+        <div class="space-y-5">
+          <div class="text-center font-pixel text-sm sm:text-base tracking-wider" data-i18n="srv_title">SERVIDOR E
+            EQUIPE</div>
+
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bench-black-box p-4 flex flex-col justify-between gap-3">
+              <div class="flex items-center justify-between gap-2">
+                <span class="font-pixel text-xs text-slate-300" data-i18n="hud_room_prefix">SALA:</span>
+                <span id="lobby-room-code" class="font-pixel text-sm text-emerald-300">LOCAL</span>
+              </div>
+              <div class="flex gap-2.5">
+                <button id="btn-host-room" type="button" class="kimu-btn kimu-btn-sm flex-1 whitespace-nowrap"
+                  data-i18n="srv_create_btn">GERAR CÓDIGO</button>
+                <button id="btn-copy-code" type="button" class="kimu-btn kimu-btn-sm min-w-[110px] whitespace-nowrap"
+                  data-i18n="srv_copy_btn">COPIAR</button>
+              </div>
+            </div>
+
+            <div class="bench-black-box p-4 flex flex-col justify-between gap-3">
+              <div class="flex items-center justify-between gap-2">
+                <span class="font-pixel text-xs text-slate-300" data-i18n="srv_join_label">ENTRAR COM CÓDIGO:</span>
+                <span id="lobby-net-status" class="font-pixel text-[10px] text-sky-300">ONLINE</span>
+              </div>
+              <div class="flex gap-2.5">
+                <input id="input-join-code" type="text" maxlength="10" placeholder="KSC-401"
+                  class="kimu-input flex-1" />
+                <button id="btn-join-room" type="button" class="kimu-btn kimu-btn-sm min-w-[130px] whitespace-nowrap"
+                  data-i18n="srv_join_btn">CONECTAR</button>
+              </div>
+            </div>
+          </div>
+
+          
+          <div>
+            <div class="font-pixel text-xs text-center text-white mb-3.5" data-i18n="srv_char_label">ESCOLHA SEU
+              ESPECIALISTA:</div>
+            <div id="lobby-specialists-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+          </div>
+
+          
+          <div class="bench-black-box px-4 py-3 text-center font-pixel-body text-2xl text-slate-100"
+            data-i18n="srv_hint">
+            Você pode jogar sozinho ou criar um código para jogar com amigos em qualquer rede Wi-Fi ou 4G.
+          </div>
+        </div>
+
+        
+        <div class="flex items-center justify-between pt-4 mt-3 border-t border-white/30">
+          <button id="btn-server-back" type="button" class="kimu-btn kimu-btn-sm" data-i18n="btn_back">VOLTAR</button>
+          <button id="btn-start-game" type="button" class="kimu-btn kimu-btn-sm" data-i18n="menu_play">JOGAR</button>
+        </div>
+      </div>
+
+    </div>
+
+    
+    <div class="relative z-10 pointer-events-none mb-3">
+      <svg width="148" height="30" viewBox="0 0 68 14" shape-rendering="crispEdges">
+        <rect x="6" y="4" width="2" height="6" fill="#ffffff" />
+        <rect x="4" y="6" width="6" height="2" fill="#ffffff" />
+        <rect x="0" y="6" width="2" height="2" fill="#ffffff" opacity="0.7" />
+        <rect x="12" y="6" width="44" height="2" fill="#ffffff" opacity="0.65" />
+        <rect x="33" y="0" width="2" height="14" fill="#ffffff" />
+        <rect x="27" y="6" width="14" height="2" fill="#ffffff" />
+        <rect x="31" y="4" width="6" height="6" fill="#ffffff" />
+        <rect x="29" y="5" width="10" height="4" fill="#ffffff" />
+        <rect x="32" y="2" width="4" height="10" fill="#ffffff" />
+        <rect x="60" y="4" width="2" height="6" fill="#ffffff" />
+        <rect x="58" y="6" width="6" height="2" fill="#ffffff" />
+        <rect x="66" y="6" width="2" height="2" fill="#ffffff" opacity="0.7" />
+      </svg>
+    </div>
+
+  </main>
+
+  
+  <div id="game-view-shell" class="hidden fixed inset-0 w-full h-dvh flex flex-col overflow-hidden bg-[#120b2e]">
+
+    
+    <header id="game-hud" class="w-full bg-[#161042] border-b-2 border-white px-3 py-2.5 z-20 shrink-0">
+      <div class="w-full flex flex-wrap items-center justify-between gap-2">
+
+        
+        <div class="flex flex-wrap items-center gap-2">
+          <button id="btn-hud-mission-info" type="button" class="hud-data-chip hover:bg-[#23195c] cursor-pointer"
+            title="Clique para entender esta missão">
+            <span class="chip-label" data-i18n="hud_mission_label">MISSÃO ATIVA:</span>
+            <span id="hud-mission-val" class="chip-val font-bold">BisonSat (Clima e Vegetação)</span>
+          </button>
+
+          <div class="hud-data-chip">
+            <span class="chip-label" data-i18n="hud_orbit">ÓRBITA:</span>
+            <span id="hud-orbit-val" class="chip-val">Polar (680 km)</span>
+          </div>
+
+          <div id="hud-mass-box" class="hud-data-chip">
+            <span class="chip-label" data-i18n="hud_mass">MASSA:</span>
+            <span id="hud-mass-val" class="chip-val">1.15 / 1.33 kg</span>
+          </div>
+
+          <div id="hud-power-box" class="hud-data-chip">
+            <span class="chip-label" data-i18n="hud_power">ENERGIA:</span>
+            <span id="hud-power-val" class="chip-val">+0 W</span>
+          </div>
+
+          <div id="hud-budget-box" class="hud-data-chip">
+            <span class="chip-label" data-i18n="hud_budget">ORÇAMENTO:</span>
+            <span id="hud-budget-val" class="chip-val">$51k livres</span>
+          </div>
+        </div>
+
+        
+        <div id="hud-specialists-bar" class="hidden xl:flex items-center gap-2"></div>
+
+        
+        <div class="flex items-center gap-2">
+          <button id="btn-hud-intro" type="button" class="kimu-btn kimu-btn-sm min-w-[118px] h-[44px]"
+            data-i18n="hud_intro">COMO JOGAR</button>
+          <button id="btn-hud-map" type="button" class="kimu-btn kimu-btn-sm min-w-[108px] h-[44px]"
+            data-i18n="hud_map">MAPA KSC</button>
+
+          
+          <div class="hud-data-chip px-3">
+            <span class="chip-label" data-i18n="hud_room_prefix">SALA:</span>
+            <span id="hud-room-code-val" class="chip-val">LOCAL</span>
+          </div>
+
+          
+          <button id="btn-hud-home" type="button" class="kimu-btn kimu-btn-sm min-w-[88px] h-[44px] bg-rose-950/90"
+            data-i18n="hud_leave">SAIR</button>
+        </div>
+
+      </div>
+    </header>
+
+    
+    <div id="top-warning-banner" class="hidden w-full bg-rose-900 border-b-2 border-white px-4 py-2.5 z-20 shrink-0">
+      <div class="max-w-[1440px] mx-auto flex flex-wrap items-center justify-between gap-2">
+        <div class="font-pixel-body text-2xl text-white">
+          <strong id="top-warning-title" class="font-pixel text-xs mr-2">ALERTA DE FALTA DE ENERGIA:</strong>
+          <span id="top-warning-desc">O satélite consome mais energia do que gera.</span>
+        </div>
+        <button id="btn-fix-warning" type="button" class="kimu-btn kimu-btn-sm bg-black">
+          CORRIGIR NA SALA 2
+        </button>
+      </div>
+    </div>
+
+    
+    <div class="flex-1 min-h-0 w-full flex flex-col lg:flex-row overflow-hidden">
+
+      
+      <section id="game-stage-wrapper"
+        class="flex-1 min-h-0 flex flex-col items-center justify-center p-2 sm:p-3 relative overflow-hidden">
+        <div class="canvas-aspect-box">
+          <canvas id="game-canvas" width="1280" height="720"></canvas>
+
+          
+          <div
+            class="lg:hidden absolute inset-x-0 bottom-10 px-3 flex items-end justify-between pointer-events-none z-10">
+            <div class="grid grid-cols-3 gap-1 w-28 h-28 pointer-events-auto">
+              <div></div>
+              <button type="button" data-dpad="up"
+                class="bg-[#090714] border-2 border-white text-white flex items-center justify-center text-sm">▲</button>
+              <div></div>
+              <button type="button" data-dpad="left"
+                class="bg-[#090714] border-2 border-white text-white flex items-center justify-center text-sm">◀</button>
+              <div></div>
+              <button type="button" data-dpad="right"
+                class="bg-[#090714] border-2 border-white text-white flex items-center justify-center text-sm">▶</button>
+              <div></div>
+              <button type="button" data-dpad="down"
+                class="bg-[#090714] border-2 border-white text-white flex items-center justify-center text-sm">▼</button>
+              <div></div>
+            </div>
+
+            <div class="flex flex-col gap-2 pointer-events-auto">
+              <button id="btn-touch-map" type="button" class="kimu-btn kimu-btn-sm" data-i18n="hud_map">MAPA
+                KSC</button>
+              <button id="btn-touch-interact" type="button" class="kimu-btn kimu-btn-sm"
+                data-i18n="hud_interact_btn">ABRIR BANCADA</button>
+            </div>
+          </div>
+        </div>
+
+        
+        <div
+          class="mt-2.5 mb-2.5 px-5 py-1.5 bg-[#090714] border-2 border-white font-pixel-body text-2xl text-white text-center">
+          <span data-i18n="hud_controls_hint">WASD ou Setas: Andar | E ou Clique: Abrir Bancada | 1 a 4: Trocar
+            Sala</span>
+        </div>
+      </section>
+
+      
+      <aside id="lab-sidebar"
+        class="w-full lg:w-[340px] xl:w-[360px] bg-[#161042] border-t-2 lg:border-t-0 lg:border-l-2 border-white p-4 overflow-y-auto modal-scroll shrink-0 flex flex-col gap-4 max-h-[36dvh] lg:max-h-none">
+
+        
+        <div class="bench-black-box p-4">
+          <div class="flex items-center justify-between gap-2 mb-2.5">
+            <span class="font-pixel text-xs text-white" data-i18n="side_day_title">CRONOGRAMA KSC</span>
+            <span id="sidebar-day-badge"
+              class="font-pixel text-xs text-white bg-[#251a66] px-2.5 py-1 border border-white whitespace-nowrap">DIA 1
+              / 90</span>
+          </div>
+          <div class="flex items-center justify-between font-pixel-body text-2xl text-slate-200 mb-2">
+            <span id="sidebar-stage-text">ETAPA 1</span>
+            <span id="sidebar-progress-text">0 / 8 (0%)</span>
+          </div>
+          <div class="kimu-progress-track">
+            <div id="sidebar-progress-fill" class="kimu-progress-fill" style="width: 0%;"></div>
+          </div>
+        </div>
+
+        
+        <div class="bench-black-box p-4 flex-1 flex flex-col justify-between gap-3">
+          <div>
+            <div class="font-pixel text-xs text-slate-300 mb-3" data-i18n="side_specialist_title">ESPECIALISTA DA SALA
+            </div>
+            <div class="flex items-center gap-3.5 mb-3">
+              <img id="sidebar-char-portrait" src="" alt="Especialista" class="char-portrait-rect-lg" />
+              <div class="flex-1 min-w-0">
+                <div id="sidebar-char-name" class="font-pixel text-xs text-white leading-snug">Dra. Elena Vance</div>
+                <div id="sidebar-char-role" class="font-pixel-body text-2xl text-slate-300 mt-1">Cientista-Chefe</div>
+              </div>
+            </div>
+            <p id="sidebar-char-speech"
+              class="font-pixel-body text-2xl leading-relaxed text-white bg-[#140e38] p-3.5 border border-white/60">
+              Olá! Clique na Bancada 1 para escolher qual missão da NASA vamos construir.
+            </p>
+          </div>
+
+          <div id="sidebar-mission-explainer"
+            class="font-pixel-body text-2xl leading-snug text-slate-100 bg-[#110c2e] p-3.5 border border-white/40">
+          </div>
+        </div>
+
+      </aside>
+
+    </div>
+
+  </div>
+
+  
+  <div id="modal-overlay" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-2 sm:p-4 z-30">
+    <div class="kimu-box w-[96vw] max-w-[1380px] max-h-[92dvh] flex flex-col overflow-hidden">
+      <div class="px-6 py-4 border-b-2 border-white flex items-center justify-between gap-3 shrink-0 bg-[#090714]">
+        <div>
+          <h2 id="modal-header-title" class="font-pixel text-sm sm:text-base text-white">BANCADA</h2>
+          <p id="modal-header-sub" class="font-pixel-body text-2xl text-slate-200 mt-1">KSC LAB</p>
+        </div>
+        <button id="btn-close-modal" type="button" class="kimu-btn kimu-btn-sm" data-i18n="btn_back">VOLTAR</button>
+      </div>
+
+      <div id="modal-body-content"
+        class="p-5 sm:p-7 overflow-y-auto modal-scroll flex-1 font-pixel-body text-2xl bg-[#110c2a]"></div>
+    </div>
+  </div>
+
+  
+  <div id="countdown-overlay"
+    class="hidden fixed inset-0 bg-black/85 flex flex-col items-center justify-center z-40 p-4">
+    <div class="kimu-box p-8 text-center max-w-md w-full">
+      <div class="font-pixel text-sm text-slate-300 mb-3">PLATAFORMA 39A</div>
+      <div id="countdown-number" class="font-pixel text-3xl sm:text-4xl text-white my-4">T-00:10</div>
+      <p class="font-pixel-body text-2xl text-slate-200">SEQUÊNCIA DE IGNIÇÃO INICIADA...</p>
+    </div>
+  </div>
+
+  
+  <div id="cutscene-overlay" class="hidden fixed inset-0 bg-black flex flex-col items-center justify-center p-3 z-40">
+    <div class="w-full max-w-5xl aspect-video border-2 border-white relative">
+      <canvas id="cutscene-canvas" width="1280" height="720"></canvas>
+      <button id="btn-skip-cutscene" type="button" class="kimu-btn kimu-btn-sm absolute bottom-4 right-4">
+        AVANÇAR
+      </button>
+    </div>
+  </div>
+
+  
+  <div id="game-toast" class="hidden"></div>
+
+  
+  <script src="./js/i18n.js"></script>
+  <script src="./js/gameData.js"></script>
+  <script src="./js/network.js"></script>
+  <script src="./js/renderer.js"></script>
+  <script src="./js/main.js"></script>
+</body>
+
+</html>

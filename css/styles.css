@@ -1,0 +1,369 @@
+:root {
+  --kimu-bg-deep: #180f38;
+  --kimu-panel-bg: rgba(23, 17, 68, 0.94);
+  --kimu-bench-black: #090714;
+  --kimu-bench-card: #0e0b1f;
+  --kimu-btn-bg: rgba(24, 15, 62, 0.88);
+  --kimu-btn-hover: rgba(52, 35, 122, 0.96);
+  --kimu-border: #ffffff;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--kimu-bg-deep);
+  color: #ffffff;
+  font-family: 'Press Start 2P', monospace;
+  overflow: hidden;
+  image-rendering: pixelated;
+}
+
+.font-pixel {
+  font-family: 'Press Start 2P', monospace;
+  letter-spacing: 0.04em;
+}
+
+.font-pixel-body {
+  font-family: 'VT323', monospace;
+  letter-spacing: 0.03em;
+}
+
+#menu-bg-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+  image-rendering: pixelated;
+}
+
+.kimu-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 170px;
+  min-height: 50px;
+  padding: 10px 22px;
+  background: var(--kimu-btn-bg);
+  border: 2px solid var(--kimu-border);
+  border-radius: 0;
+  color: #ffffff;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 13px;
+  line-height: 1.4;
+  text-align: center;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color 0.1s ease, box-shadow 0.1s ease;
+  white-space: normal;
+  word-break: keep-all;
+}
+
+.kimu-btn:hover {
+  background: var(--kimu-btn-hover);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.35);
+}
+
+.kimu-btn:active {
+  background: #ffffff;
+  color: #090714;
+}
+
+.kimu-btn-sm {
+  min-width: 112px;
+  min-height: 42px;
+  padding: 8px 16px;
+  font-size: 11px;
+}
+
+.kimu-btn-done {
+  background: #14532d;
+  border-color: #ffffff;
+  color: #ffffff;
+}
+
+.kimu-box {
+  background: linear-gradient(180deg, rgba(30, 22, 84, 0.95) 0%, rgba(18, 13, 56, 0.97) 100%);
+  border: 2px solid #ffffff;
+  border-radius: 0;
+  box-shadow: 0 0 30px rgba(6, 4, 18, 0.9);
+}
+
+.bench-black-box {
+  background-color: var(--kimu-bench-black);
+  border: 2px solid #ffffff;
+  border-radius: 0;
+  color: #ffffff;
+}
+
+.kimu-dropdown-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.kimu-field {
+  width: 100%;
+  height: 44px;
+  padding: 0 12px;
+  background: rgba(16, 11, 50, 0.95);
+  border: 2px solid #ffffff;
+  border-radius: 0;
+  color: #ffffff;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+.kimu-field:hover {
+  background: rgba(42, 28, 102, 0.98);
+}
+
+.kimu-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #090714;
+  border: 2px solid #ffffff;
+  z-index: 60;
+  max-height: 196px;
+  overflow-y: auto;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.85);
+}
+
+.kimu-dropdown-item {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.kimu-dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.kimu-dropdown-item:hover {
+  background: #2b1e70;
+}
+
+.kimu-dropdown-item.is-active {
+  background: #ffffff;
+  color: #090714;
+}
+
+.kimu-input {
+  width: 100%;
+  height: 44px;
+  padding: 0 12px;
+  background: rgba(16, 11, 50, 0.9);
+  border: 2px solid #ffffff;
+  border-radius: 0;
+  color: #ffffff;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 12px;
+  outline: none;
+  text-transform: uppercase;
+}
+
+.kimu-slider-wrap {
+  position: relative;
+  flex: 1;
+  height: 30px;
+  display: flex;
+  align-items: center;
+}
+
+.kimu-slider-track {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.35);
+  position: relative;
+}
+
+.kimu-slider-fill {
+  height: 100%;
+  background: #ffffff;
+}
+
+.kimu-slider-thumb {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 24px;
+  height: 24px;
+  pointer-events: none;
+}
+
+.kimu-range-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  margin: 0;
+}
+
+.char-portrait-rect {
+  width: 64px;
+  height: 84px;
+  border: 2px solid #ffffff;
+  background-color: #090714;
+  object-fit: cover;
+  image-rendering: pixelated;
+  flex-shrink: 0;
+}
+
+.char-portrait-rect-lg {
+  width: 72px;
+  height: 94px;
+  border: 2px solid #ffffff;
+  background-color: #090714;
+  object-fit: cover;
+  image-rendering: pixelated;
+  flex-shrink: 0;
+}
+
+.option-card {
+  background-color: var(--kimu-bench-black);
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  border-radius: 0;
+  color: #ffffff;
+  transition: border-color 0.12s ease, background-color 0.12s ease;
+}
+
+.option-card:hover {
+  border-color: #ffffff;
+  background-color: #14102c;
+}
+
+.option-card.is-selected {
+  border-color: #ffffff;
+  background-color: #1c153e;
+  box-shadow: inset 0 0 0 2px #ffffff;
+}
+
+.spec-metrics-row {
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
+  padding-top: 10px;
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-family: 'VT323', monospace;
+  font-size: 23px;
+  color: #ffffff;
+}
+
+.spec-metrics-row span {
+  color: #ffffff;
+  white-space: nowrap;
+}
+
+.kimu-progress-wrap {
+  background-color: var(--kimu-bench-black);
+  border: 2px solid #ffffff;
+  padding: 14px 16px;
+}
+
+.kimu-progress-track {
+  width: 100%;
+  height: 16px;
+  background-color: #1e1836;
+  border: 2px solid #ffffff;
+  overflow: hidden;
+}
+
+.kimu-progress-fill {
+  height: 100%;
+  background-color: #ffffff;
+  transition: width 0.25s ease;
+}
+
+.hud-data-chip {
+  height: 44px;
+  padding: 0 12px;
+  background: #090714;
+  border: 2px solid #ffffff;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'VT323', monospace;
+  font-size: 22px;
+  color: #ffffff;
+  white-space: nowrap;
+}
+
+.hud-data-chip .chip-label {
+  color: #cbd5e1;
+  font-size: 20px;
+}
+
+.hud-data-chip .chip-val {
+  color: #ffffff;
+  font-size: 24px;
+}
+
+.canvas-aspect-box {
+  width: 100%;
+  max-width: min(100%, calc((100dvh - 150px) * 16 / 9));
+  aspect-ratio: 16 / 9;
+  position: relative;
+  border: 2px solid #ffffff;
+  background: #090714;
+  overflow: hidden;
+}
+
+#game-canvas,
+#cutscene-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+}
+
+.modal-scroll::-webkit-scrollbar,
+.kimu-dropdown-menu::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-scroll::-webkit-scrollbar-track,
+.kimu-dropdown-menu::-webkit-scrollbar-track {
+  background: #090714;
+}
+
+.modal-scroll::-webkit-scrollbar-thumb,
+.kimu-dropdown-menu::-webkit-scrollbar-thumb {
+  background: #ffffff;
+}
